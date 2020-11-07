@@ -1,0 +1,897 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:layout_marginBottom="50dp"
+    tools:context=".ui.home.fragments.HomeFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_home_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:textAlignment="center"
+            android:fontFamily="@font/black_ops_one"
+            android:textColor="@color/homeScreenTextViewColor"
+            android:textSize="36sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="WEEK ?" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            android:text="@string/get_matchups"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/et_home_monday_points" />
+
+        <Button
+            android:id="@+id/button_picks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/make_picks"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/button"
+            app:layout_constraintStart_toStartOf="@+id/button"
+            app:layout_constraintTop_toTopOf="@+id/button" />
+
+        <TextView
+            android:id="@+id/tv_gameOne"
+            app:layout_constraintTop_toBottomOf="@+id/tv_home_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginTop="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameOne"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameOne">
+
+            <ImageView
+                android:id="@+id/iv_teamOne"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonOne"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT"
+                tools:visibility="visible" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwo"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameTwo"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameOne"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameTwo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameTwo">
+
+            <ImageView
+                android:id="@+id/iv_teamThree"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonThree"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonFour"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamFour"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tv_gameThree"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameTwo"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameThree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameThree">
+
+            <ImageView
+                android:id="@+id/iv_teamFive"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonFive"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonSix"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamSix"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tv_gameFour"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameThree"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+
+        <RadioGroup
+            android:id="@+id/rg_gameFour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameFour">
+
+            <ImageView
+                android:id="@+id/iv_teamSeven"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonSeven"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonEight"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamEight"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tv_gameFive"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameFour"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameFive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameFive">
+
+            <ImageView
+                android:id="@+id/iv_teamNine"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonNine"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tv_gameSix"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameFive"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameSix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameSix">
+
+            <ImageView
+                android:id="@+id/iv_teamEleven"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonEleven"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwelve"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwelve"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameSeven"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameSix"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameSeven"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameSeven">
+
+            <ImageView
+                android:id="@+id/iv_teamThirteen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonThirteen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonFourteen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamFourteen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameEight"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameSeven"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameEight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameEight">
+
+            <ImageView
+                android:id="@+id/iv_teamFifteen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonFifteen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonSixteen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamSixteen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameNine"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameEight"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameNine"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameNine">
+
+            <ImageView
+                android:id="@+id/iv_teamSeventeen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonSeventeen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonEighteen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamEighteen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tv_gameTen"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameNine"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameTen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameTen">
+
+            <ImageView
+                android:id="@+id/iv_teamNineteen"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonNineteen"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwenty"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwenty"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tv_gameEleven"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameTen"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameEleven"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameEleven">
+
+            <ImageView
+                android:id="@+id/iv_teamTwentyOne"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentyOne"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentyTwo"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwentyTwo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameTwelve"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameEleven"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameTwelve"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameTwelve">
+
+            <ImageView
+                android:id="@+id/iv_teamTwentyThree"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentyThree"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentyFour"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwentyFour"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameThirteen"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameTwelve"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameThirteen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameThirteen">
+
+            <ImageView
+                android:id="@+id/iv_teamTwentyFive"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentyFive"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentySix"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwentySix"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+        <TextView
+            android:id="@+id/tv_gameFourteen"
+            app:layout_constraintTop_toBottomOf="@+id/rg_gameThirteen"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:fontFamily="@font/black_ops_one"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/homeScreenTextViewColor"
+            tools:text = "TEXT"
+            />
+        <RadioGroup
+            android:id="@+id/rg_gameFourteen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_gameFourteen">
+
+            <ImageView
+                android:id="@+id/iv_teamTwentySeven"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="2"
+                tools:src="@tools:sample/avatars" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentySeven"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <RadioButton
+                android:id="@+id/radioButtonTwentyEight"
+                android:layout_width="125dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="25dp"
+                android:textAlignment="center"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="TEXT" />
+
+            <ImageView
+                android:id="@+id/iv_teamTwentyEight"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                tools:src="@tools:sample/avatars" />
+        </RadioGroup>
+
+        <EditText
+            android:id="@+id/et_home_monday_points"
+            app:layout_constraintTop_toBottomOf="@id/rg_gameFourteen"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_width="250dp"
+            android:hint="@string/monday_night_points"
+            android:inputType="number"
+            android:visibility="gone"
+            android:textAlignment="center"
+            android:textSize="24sp"
+            android:textColor="@color/homeScreenTextViewColor"
+            android:layout_height="wrap_content"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
