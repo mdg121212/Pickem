@@ -12,6 +12,7 @@ import androidx.navigation.fragment.findNavController
 import com.firebase.ui.auth.AuthUI
 import com.mattg.pickem.LoginActivity
 import com.mattg.pickem.R
+import com.mattg.pickem.db.Pick
 import com.mattg.pickem.models.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import com.mattg.pickem.utils.Constants
@@ -29,6 +30,7 @@ class HomeFragment : Fragment() {
     private var checkBoxList = ArrayList<RadioGroup>()
     private var pairList = ArrayList<Pair<RadioGroup, TextView>>()
     private var gamesCount = 0
+    private var currentDateToSaveForCache: String ?= null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -87,42 +89,76 @@ class HomeFragment : Fragment() {
         })
 
         getDate()
+        val date = Date()
+        currentDateToSaveForCache = date.toString()
+        Timber.i("DATE VARIABLE = $date")
+        Timber.i("DATE VARIABLE TO STRING = " + date.toString())
+
         homeViewModel.callForSchedule(2020)
+
         Timber.i("First Call for a schedule made")
         button.setOnClickListener {
             emptyHomeScreenButtonClick()
         }
         button_picks.setOnClickListener {
             //function ensures that amount of checked boxes must equal amount of games
-            if (makeSureAllButtonsChecked(checkBoxList, gamesCount)) {
-                if (!et_home_monday_points.text.isNullOrBlank()) {
-                    //take number and save with results
-                    val pointsString = et_home_monday_points.text.toString()
-                    val weekString = tv_home_title.text.toString()
-                    val finalString = generatePickList(checkBoxList, pointsString, weekString)
-
-                    Toast.makeText(
-                        requireContext(),
-                        "Picks Set!" + generatePickList(checkBoxList, pointsString, tv_home_title.text.toString()),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    homeViewModel.setPicksString(finalString)
-                    findNavController().navigate(R.id.action_navigation_home_to_currentList)
-                } else {
-                    Toast.makeText(requireContext(), "Fill out points", Toast.LENGTH_SHORT).show()
-                }
-
-
-            } else {
-                Toast.makeText(requireContext(), "Didn't check all games", Toast.LENGTH_SHORT)
-                    .show()
-            }
+            setPicksButtonFunction()
 
         }
 
 
     }
 
+    private fun setPicksButtonFunction() {
+        if (makeSureAllButtonsChecked(checkBoxList, gamesCount)) {
+            if (!et_home_monday_points.text.isNullOrBlank()) {
+                //take number and save with results
+                val pointsString = et_home_monday_points.text.toString()
+                val weekString = tv_home_title.text.toString()
+                val finalString = currentDateToSaveForCache?.let { date ->
+                     generatePickList(checkBoxList, pointsString, weekString, date)
+
+                }
+                Timber.i("The value passed to database function is " + finalString)
+                if (finalString != null) {
+                    savePicksToDatabase(finalString)
+                    homeViewModel.setPicksString(finalString)
+                }
+                findNavController().navigate(R.id.action_navigation_home_to_currentList)
+            } else {
+                Toast.makeText(requireContext(), "Fill out points", Toast.LENGTH_SHORT).show()
+            }
+
+        } else {
+            Toast.makeText(requireContext(), "Didn't check all games", Toast.LENGTH_SHORT)
+                    .show()
+        }
+    }
+
+    private fun savePicksToDatabase(picks: String) {
+        val pick = formatForPickDatabase(picks)
+        homeViewModel.savePickToDatabase(pick)
+
+        // val pickToSave = Pick()
+
+    }
+
+    private fun formatForPickDatabase(picks: String): Pick {
+        val saveString = picks.replace("[", "").replace("]", "")
+
+        val splitString = saveString.split(",")
+        val objectList = splitString.toList()
+        val listSize = objectList.size
+        val weekString = objectList[listSize - 2]
+        val finalPoints = objectList[listSize - 3]
+        val dateString = objectList[listSize - 1]
+
+        val subList = objectList.subList(0, listSize - 3)
+        Timber.i("$weekString = variable to save for week.\n$finalPoints = final points.\n$dateString = date to save.\n${subList.toString().trim()} = picks to save.")
+
+        val pickToSave = Pick(weekString, "name for now", subList.toString().trim(), finalPoints = finalPoints.trim().toInt())
+        return pickToSave
+    }
 
     private fun getDate() {
         val currentTime = SimpleDateFormat(
@@ -136,9 +172,10 @@ class HomeFragment : Fragment() {
             splitDateString[1].trim().toInt(),
             splitDateString[2].trim().toInt()
         )
-        Log.i("TEST", dateToCheck.toString())
-        Log.i("test", currentTime)
+        Timber.i(" $dateToCheck")
+        Timber.i(currentTime)
         checkDate(dateToCheck)
+
     }
 
 
@@ -157,6 +194,7 @@ class HomeFragment : Fragment() {
 
     private fun checkDate(date: Date) {
         homeViewModel.getWeekToPick(date)
+        homeViewModel.setDate(date)
         Timber.i( "Home ViewModel upcoming week value is = ${homeViewModel.upcomingWeek.value}")
     }
 
@@ -245,7 +283,7 @@ class HomeFragment : Fragment() {
         var count = 0
         for (group in list) {
 
-            Log.i("TEST", group.checkedRadioButtonId.toString())
+            Timber.i(group.checkedRadioButtonId.toString())
             if ((group[1] as RadioButton).isChecked || (group[2] as RadioButton).isChecked) {
                 count++
             }
@@ -253,7 +291,7 @@ class HomeFragment : Fragment() {
         return count == list.size
     }
 
-    private fun generatePickList(list: ArrayList<RadioGroup>, score: String, week: String): String {
+    private fun generatePickList(list: ArrayList<RadioGroup>, score: String, week: String, date: String): String {
         val pickList = ArrayList<String>()
         for (group in list) {
 
@@ -270,11 +308,13 @@ class HomeFragment : Fragment() {
         }
         pickList.add(score)
         pickList.add(week)
-        var returnString = pickList.toString()
+        pickList.add(date)
+        val returnString = pickList.toString()
 
-        Log.i("TEST", returnString)
+        Timber.i(returnString)
         return returnString
     }
+
     private fun observeViewModel() {
 
     }
@@ -318,7 +358,7 @@ class HomeFragment : Fragment() {
         return true
     }
 
-    fun logout(){
+    private fun logout(){
         AuthUI.getInstance()
             .signOut(requireContext())
             .addOnCompleteListener {

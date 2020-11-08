@@ -7,17 +7,23 @@ import androidx.room.*
 interface PicksDao {
 
     @Query("SELECT * FROM picks WHERE week = :week")
-    suspend fun getPicksByWeek(week: Int): Picks
+    suspend fun getPicksByWeek(week: Int): Pick
 
     @Query("SELECT * FROM picks order by week")
-     fun getPicksLiveData(): LiveData<Picks>
+     fun getPicksLiveData(): LiveData<Pick>
+
+    @Query("SELECT * FROM picks order by week")
+    suspend fun getAllPics(): List<Pick>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPicks(picks: Picks)
+    suspend fun insertPicks(picks: Pick)
 
     @Delete()
-    suspend fun deletePick(pick: Picks)
+    suspend fun deletePick(pick: Pick)
+
+    @Query("DELETE FROM picks")
+    suspend fun clearPicks()
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updatePicks(picks: Picks)
+    suspend fun updatePicks(picks: Pick)
 }

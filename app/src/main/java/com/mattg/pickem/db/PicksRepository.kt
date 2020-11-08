@@ -10,18 +10,18 @@ class PicksRepository(private val dao: PicksDao) {
 
     val coroutinContext = CoroutineScope(Dispatchers.Default)
 
-    private val picks : LiveData<Picks> =
+    private val picks : LiveData<Pick> =
         dao.getPicksLiveData()
 
-    suspend fun deletePicks(picks: Picks) = coroutinContext.launch {
+    suspend fun deletePicks(picks: Pick) = coroutinContext.launch {
         dao.deletePick(picks)
     }
 
-    suspend fun updatePicks(picks: Picks) = coroutinContext.launch {
+    suspend fun updatePicks(picks: Pick) = coroutinContext.launch {
         dao.updatePicks(picks)
     }
 
-    suspend fun insertPicks(picks: Picks) = coroutinContext.launch {
+    suspend fun insertPicks(picks: Pick) = coroutinContext.launch {
         dao.insertPicks(picks)
     }
 

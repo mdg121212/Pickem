@@ -6,8 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities =[Picks::class, ApiResponseCached::class], version = 2, exportSchema = false)
-
+@Database(entities =[Pick::class, ApiResponseCached::class], version = 4, exportSchema = false)
 abstract class PicksDatabase : RoomDatabase() {
 
         abstract fun picksDao(): PicksDao

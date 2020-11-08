@@ -1,20 +1,22 @@
 package com.mattg.pickem.db
 
+
+
 import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao
 interface ApiDao {
 
-    @Query("SELECT * FROM picks cache")
-    fun getApiCacheString(): LiveData<String>
+    @Query("SELECT * FROM cache")
+    fun getApiCacheString() : LiveData<ApiResponseCached>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNewCache(cache: String)
+     fun insertNewCache(cache: ApiResponseCached)
 
     @Delete()
-    suspend fun deleteCache(cache: String)
+    fun deleteCache(cache: ApiResponseCached)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun updateCache(cache: String)
+     fun updateCache(cache: ApiResponseCached)
 }

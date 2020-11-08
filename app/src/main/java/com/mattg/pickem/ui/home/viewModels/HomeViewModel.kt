@@ -1,26 +1,30 @@
 package com.mattg.pickem.ui.home.viewModels
 
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mattg.pickem.R
-import com.mattg.pickem.db.ApiCallRepository
+import com.mattg.pickem.db.ApiResponseCached
+import com.mattg.pickem.db.Pick
+import com.mattg.pickem.db.repos.ApiCallRepository
+import com.mattg.pickem.db.repos.RoomRepo
 import com.mattg.pickem.models.Game
 import com.mattg.pickem.models.Week
 import com.mattg.pickem.models.iomodels.IOScheduleReponse
-import com.mattg.pickem.network.APICallService
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ApiCallRepository()
+    private val roomRepository = RoomRepo(application)
 
     private val weeksArray = arrayListOf(
         Week(1, Date(2020, 9, 10)),
@@ -49,6 +53,10 @@ class HomeViewModel : ViewModel() {
     private val _gameCount = MutableLiveData<Int>()
     val gameCount : MutableLiveData<Int> = _gameCount
 
+    private val _currentUserNameId = MutableLiveData<HashMap<String, String>>()
+    val currentUserNameId: LiveData<HashMap<String, String>> = _currentUserNameId
+
+    private val _currentDate = MutableLiveData<Date>()
 
     private val _scheduleResult = MutableLiveData<IOScheduleReponse>()
     val scheduleResult: LiveData<IOScheduleReponse> = _scheduleResult
@@ -69,6 +77,27 @@ class HomeViewModel : ViewModel() {
         _picksString.value = input
     }
 
+    fun savePickToDatabase(pick: Pick){
+        viewModelScope.launch {
+            roomRepository.savePicksToDatabase(pick)
+            roomRepository.getListOfPicks()
+        }
+    }
+
+    fun setUserName(name: String, id: String){
+        val map = HashMap<String, String>()
+        map[name] = id
+
+        _currentUserNameId.value = map
+    }
+
+    fun cacheResponseToDatabase(date: String, response: String){
+        val objectToInsert = ApiResponseCached(date, response)
+        viewModelScope.launch {
+            roomRepository.saveScheduleForYearResponseToRoom(objectToInsert)
+        }
+    }
+
     private val _shouldShowFirstButton = MutableLiveData<Boolean>().apply {
         true
     }
@@ -78,17 +107,20 @@ class HomeViewModel : ViewModel() {
         _shouldShowFirstButton.postValue(bool)
     }
 
+    fun setDate(date: Date){
+        _currentDate.value = date
+    }
 
     fun callForSchedule(year: Int){
 
-           _scheduleResult.value = repository.getSchedule(year)
+        val dateToCheckForCache = _currentDate.value
 
-
+        _scheduleResult.value = repository.getSchedule(year)
     }
 
     fun getScheduleForWeek(week: Int) {
         _listOfGames.value = repository.getScheduleForWeek(week)
-        Timber.i("SCHEDULE RESULT TURNED TO LIST OF GAMES = ${listOfGames.value}")
+                //  Timber.i("SCHEDULE RESULT TURNED TO LIST OF GAMES = ${listOfGames.value}")
 
     }
 
@@ -149,6 +181,7 @@ class HomeViewModel : ViewModel() {
     }
     private fun setWeek(input: Int){
         _upcomingWeek.value = input
+        _text.value = "Week $input"
     }
 
     fun setGameCount(games: Int){
@@ -158,7 +191,7 @@ class HomeViewModel : ViewModel() {
     fun setUpPickSheet() {
         val returnList = ArrayList<Game>()
         val resultWeek =_listOfGames.value
-        Timber.i("_listOfGames value = ${listOfGames.value}")
+       // Timber.i("_listOfGames value = ${listOfGames.value}")
         if (resultWeek != null) {
             var count = 0
 
@@ -170,6 +203,7 @@ class HomeViewModel : ViewModel() {
                 val formatter = SimpleDateFormat("EE, MMM yyyy")
                 val formattedDate = formatter.format( parser.parse(item.dateTime))
                 //create a game object
+
                 val newGame = Game(
                     item.homeTeam!!,
                     item.awayTeam!!,

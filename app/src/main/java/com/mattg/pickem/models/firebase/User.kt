@@ -1,12 +1,13 @@
 package com.mattg.pickem.models.firebase
 
-import com.mattg.pickem.db.Picks
+import com.mattg.pickem.db.Pick
+
 
 class User {
     lateinit var name: String
     lateinit var email: String
     lateinit var userId: String
-    var picks: List<Picks>? = null
+    var picks: List<Pick>? = null
     var type: String? = null
     var pools: String? = null
     var invites: Boolean = false
@@ -34,7 +35,7 @@ class User {
         pools = null
         this.invites = false
     }
-    constructor(name: String, email: String, userId: String, picks: List<Picks>?, typeString: String?) {
+    constructor(name: String, email: String, userId: String, picks: List<Pick>?, typeString: String?) {
         this.name = name
         this.email = email
         this.userId = userId
@@ -43,7 +44,7 @@ class User {
         pools = null
         this.invites = false
     }
-    constructor(name: String, email: String, userId: String, picks: List<Picks>?, typeString: String?, pools: String?) {
+    constructor(name: String, email: String, userId: String, picks: List<Pick>?, typeString: String?, pools: String?) {
         this.name = name
         this.email = email
         this.userId = userId

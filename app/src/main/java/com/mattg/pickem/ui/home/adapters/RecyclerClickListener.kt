@@ -1,5 +1,6 @@
 package com.mattg.pickem.ui.home.adapters
 
+import com.mattg.pickem.db.Pick
 import com.mattg.pickem.models.firebase.Invite
 import com.mattg.pickem.models.firebase.User
 
@@ -13,4 +14,7 @@ class InvitesClickListener (val clickListener: (invite: Invite, position: Int, d
 class UserPoolClickListener(val clickListener: (poolId: String, poolOwner: String, position: Int, buttonInt: Int, poolName: String) -> Unit) {
     fun onClickPoolItem(poolId: String, poolOwner: String, position: Int, buttonInt: Int, poolName: String)
             = clickListener(poolId, poolOwner, position, buttonInt, poolName)
+}
+class PicksClickListener(val clickListener: (pick: Pick, position: Int, option: Int) -> Unit) {
+    fun onClickPick(pick: Pick, position: Int, option: Int) = clickListener(pick, position, option)
 }

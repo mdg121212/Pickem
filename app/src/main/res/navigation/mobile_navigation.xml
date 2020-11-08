@@ -89,6 +89,13 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up"/>
+        <action
+            android:id="@+id/action_currentList_to_viewPicksFragment"
+            app:destination="@id/viewPicksFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
     </fragment>
     <fragment
         android:id="@+id/poolManagementFragment"
@@ -101,5 +108,32 @@
         <action
             android:id="@+id/action_poolManagementFragment_to_navigation_dashboard"
             app:destination="@id/navigation_dashboard" />
+        <action
+            android:id="@+id/action_poolManagementFragment_to_viewPicksFragment"
+            app:destination="@id/viewPicksFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
+    </fragment>
+    <fragment
+        android:id="@+id/viewPicksFragment"
+        android:name="com.mattg.pickem.detailui.ViewPicksFragment"
+        android:label="Picks"
+        tools:layout="@layout/fragment_view_picks">
+        <action
+            android:id="@+id/action_viewPicksFragment_to_currentList"
+            app:destination="@id/currentList"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
+        <action
+            android:id="@+id/action_viewPicksFragment_to_poolManagementFragment"
+            app:destination="@id/poolManagementFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
     </fragment>
 </navigation>

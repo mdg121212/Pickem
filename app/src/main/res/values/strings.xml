@@ -32,5 +32,8 @@
     <string name="pool_name">Pool name:</string>
     <string name="cancel">Cancel</string>
     <string name="create">Create</string>
+    <string name="delete">Delete</string>
+    <string name="duplicate">Duplicate</string>
+    <string name="your_picks">Your Picks</string>
 
 </resources>

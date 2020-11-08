@@ -1,22 +1,29 @@
-package com.mattg.pickem.db
+package com.mattg.pickem.db.repos
 
+import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.mattg.pickem.db.Pick
+import com.mattg.pickem.db.PicksDatabase
 import com.mattg.pickem.models.iomodels.IOScheduleReponse
 import com.mattg.pickem.network.APICallService
 import com.mattg.pickem.utils.Constants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import timber.log.Timber
+import java.lang.Error
 
-class ApiCallRepository {
+class ApiCallRepository() {
 
     val nflApi = APICallService.fetchIOApi()
-//    val apiDao = PicksDatabase.getInstance().apiDao()
+
 
     private val _scheduleApiForYearResponse = MutableLiveData<IOScheduleReponse>()
-    val scheduleApiForYearResponse: LiveData<IOScheduleReponse> = _scheduleApiForYearResponse
+     val scheduleApiForYearResponse: LiveData<IOScheduleReponse> = _scheduleApiForYearResponse
 
     private val _scheduleApiError = MutableLiveData<String>()
      val scheduleApiError : LiveData<String> = _scheduleApiError
@@ -38,19 +45,18 @@ class ApiCallRepository {
         return scheduleApiForYearResponse.value
     }
 
-    fun saveScheduleForYearResponseToRoom(response: String){
 
-    }
 
     fun getScheduleForWeek(week: Int) : ArrayList<IOScheduleReponse.IOreponseItem>{
         val listToReturn = ArrayList<IOScheduleReponse.IOreponseItem>()
+
         val resultWeek = _scheduleApiForYearResponse.value
-        //  Timber.i("Result week value in getSchedulefunction = $resultWeek")
+       //  Timber.i("Result week value in getSchedulefunction = $resultWeek")
         if (resultWeek != null) {
             for(item in resultWeek){
                 if(item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE"){
                     listToReturn.add(item)
-                    Timber.i("Item added = ${item.awayTeam} : ${item.homeTeam} : ${item.date}")
+                 //   Timber.i("Item added = ${item.awayTeam} : ${item.homeTeam} : ${item.date} : ${item.week}")
                 }
             }
         } else {
