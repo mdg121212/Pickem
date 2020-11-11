@@ -7,8 +7,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseUser
 import com.mattg.pickem.databinding.PoolRecyclerItemBinding
 import com.mattg.pickem.models.firebase.Pool
+import java.util.*
 
-class UserPoolsAdapter(val context: Context, val pools: ArrayList<Pool>, private val clickListener: UserPoolClickListener) :
+class UserPoolsAdapter(val context: Context, private val pools: ArrayList<Pool>, private val clickListener: UserPoolClickListener) :
 RecyclerView.Adapter<UserPoolListViewHolder>(){
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserPoolListViewHolder {
         return UserPoolListViewHolder.from(parent)
@@ -35,10 +36,10 @@ class UserPoolListViewHolder private constructor(private val binding: PoolRecycl
     fun bind(item: Pool, clickListener: UserPoolClickListener){
         binding.pool = item
         binding.btnChoosePool.setOnClickListener {
-            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 1, item.name)
+            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 1, item.poolName)
         }
         binding.btnDeletePool.setOnClickListener {
-            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 2, item.name)
+            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 2, item.poolName)
         }
     }
 

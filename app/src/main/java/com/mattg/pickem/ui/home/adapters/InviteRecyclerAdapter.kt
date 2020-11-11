@@ -8,7 +8,7 @@ import com.mattg.pickem.databinding.InviteRecyclerItemBinding
 import com.mattg.pickem.models.firebase.Invite
 import timber.log.Timber
 
-class InviteRecyclerAdapter (val context: Context, val invites: ArrayList<Invite>, private val clickListener:InvitesClickListener) :
+class InviteRecyclerAdapter (val context: Context, private val invites: ArrayList<Invite>, private val clickListener:InvitesClickListener) :
     RecyclerView.Adapter<InviteListViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InviteListViewHolder {
@@ -17,6 +17,12 @@ class InviteRecyclerAdapter (val context: Context, val invites: ArrayList<Invite
 
     override fun getItemCount(): Int {
         return invites.size
+    }
+
+
+    fun removeItem(item: Invite, position: Int){
+        invites.remove(item)
+        notifyItemRemoved(position)
     }
 
     override fun onBindViewHolder(holder: InviteListViewHolder, position: Int) {
@@ -40,12 +46,10 @@ class InviteListViewHolder private constructor(private val binding: InviteRecycl
         binding.tvInviteSenderName.text = item.sender
         binding.btnAccept.setOnClickListener {
           clickListener.onClickInviteItem(item, adapterPosition, 1)
-            Timber.i("ACCEPT BUTTON CLICKED--------------------------------------------")
         }
         binding.btnDecline.setOnClickListener {
           clickListener.onClickInviteItem(item, adapterPosition, 2)
-            Timber.i("DECLINE BUTTON CLICKED--------------------------------------------")
         }
-
+        binding.executePendingBindings()
     }
 }

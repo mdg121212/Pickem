@@ -18,3 +18,6 @@ class UserPoolClickListener(val clickListener: (poolId: String, poolOwner: Strin
 class PicksClickListener(val clickListener: (pick: Pick, position: Int, option: Int) -> Unit) {
     fun onClickPick(pick: Pick, position: Int, option: Int) = clickListener(pick, position, option)
 }
+class PoolPlayerListClickListener(val clickListener: (user: User, position: Int, action: Int) -> Unit) {
+    fun onClick(user: User, position: Int, action: Int) = clickListener(user, position, action)
+}

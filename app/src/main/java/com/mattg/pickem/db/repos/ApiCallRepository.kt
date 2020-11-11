@@ -1,12 +1,15 @@
 package com.mattg.pickem.db.repos
 
-import android.app.Application
+
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.mattg.pickem.db.Pick
+import com.mattg.pickem.db.ApiDao
+import com.mattg.pickem.db.ApiResponseCached
 import com.mattg.pickem.db.PicksDatabase
 import com.mattg.pickem.models.iomodels.IOScheduleReponse
 import com.mattg.pickem.network.APICallService
+import com.mattg.pickem.network.SportsDataApi
 import com.mattg.pickem.utils.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,12 +18,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import timber.log.Timber
-import java.lang.Error
 
-class ApiCallRepository() {
+
+class ApiCallRepository(application: Context) {
 
     val nflApi = APICallService.fetchIOApi()
-
+    private val database = PicksDatabase.getInstance(application)
 
     private val _scheduleApiForYearResponse = MutableLiveData<IOScheduleReponse>()
      val scheduleApiForYearResponse: LiveData<IOScheduleReponse> = _scheduleApiForYearResponse
@@ -28,40 +31,10 @@ class ApiCallRepository() {
     private val _scheduleApiError = MutableLiveData<String>()
      val scheduleApiError : LiveData<String> = _scheduleApiError
 
-    fun getSchedule(year: Int) : IOScheduleReponse? {
-        nflApi.getScheduleByYear(year, Constants.key)
-            .enqueue(object: Callback<IOScheduleReponse>{
-                override fun onResponse(
-                    call: Call<IOScheduleReponse>,
-                    response: Response<IOScheduleReponse>) {
-                   _scheduleApiForYearResponse.value = response.body()
 
-                }
-
-                override fun onFailure(call: Call<IOScheduleReponse>, t: Throwable) {
-                    _scheduleApiError.value = t.message
-                }
-            })
-        return scheduleApiForYearResponse.value
+    fun getApiService(): SportsDataApi {
+        return nflApi
     }
 
 
-
-    fun getScheduleForWeek(week: Int) : ArrayList<IOScheduleReponse.IOreponseItem>{
-        val listToReturn = ArrayList<IOScheduleReponse.IOreponseItem>()
-
-        val resultWeek = _scheduleApiForYearResponse.value
-       //  Timber.i("Result week value in getSchedulefunction = $resultWeek")
-        if (resultWeek != null) {
-            for(item in resultWeek){
-                if(item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE"){
-                    listToReturn.add(item)
-                 //   Timber.i("Item added = ${item.awayTeam} : ${item.homeTeam} : ${item.date} : ${item.week}")
-                }
-            }
-        } else {
-            Timber.i("FROM REPO, THE VALUE OF THE INPUT IS SHOWING AS NULL")
-        }
-        return listToReturn
-    }
 }

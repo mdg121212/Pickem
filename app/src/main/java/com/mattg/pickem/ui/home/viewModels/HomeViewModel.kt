@@ -6,6 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.mattg.pickem.R
 import com.mattg.pickem.db.ApiResponseCached
 import com.mattg.pickem.db.Pick
@@ -14,7 +16,12 @@ import com.mattg.pickem.db.repos.RoomRepo
 import com.mattg.pickem.models.Game
 import com.mattg.pickem.models.Week
 import com.mattg.pickem.models.iomodels.IOScheduleReponse
+import com.mattg.pickem.models.iomodels.IOScoresResponse
+import com.mattg.pickem.utils.Constants
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,7 +30,7 @@ import kotlin.collections.HashMap
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = ApiCallRepository()
+    private val repository = ApiCallRepository(application)
     private val roomRepository = RoomRepo(application)
 
     private val weeksArray = arrayListOf(
@@ -60,9 +67,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _scheduleResult = MutableLiveData<IOScheduleReponse>()
     val scheduleResult: LiveData<IOScheduleReponse> = _scheduleResult
+//
+//    private val _listOfGames = MutableLiveData<ArrayList<IOScheduleReponse.IOreponseItem>>()
+//    val listOfGames: LiveData<ArrayList<IOScheduleReponse.IOreponseItem>> = _listOfGames
 
-    private val _listOfGames = MutableLiveData<ArrayList<IOScheduleReponse.IOreponseItem>>()
-    val listOfGames: LiveData<ArrayList<IOScheduleReponse.IOreponseItem>> = _listOfGames
+    private val _listOfGamesByWeek = MutableLiveData<ArrayList<IOScoresResponse.IOScoresResponseItem>>()
+    val listOfGamesByWeek: LiveData<ArrayList<IOScoresResponse.IOScoresResponseItem>> = _listOfGamesByWeek
 
     private val _upcomingWeek = MutableLiveData<Int>()
     val upcomingWeek: LiveData<Int> = _upcomingWeek
@@ -72,6 +82,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _picksString = MutableLiveData<String>()
     val picksString: LiveData<String> = _picksString
+
+    private val _isReadyForUi = MutableLiveData<Boolean>()
+    val isReadyForUi: LiveData<Boolean> = _isReadyForUi
 
     fun setPicksString(input: String) {
         _picksString.value = input
@@ -98,110 +111,54 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private val _shouldShowFirstButton = MutableLiveData<Boolean>().apply {
-        true
-    }
-    val shouldShowFirstButton: LiveData<Boolean> = _shouldShowFirstButton
+fun getWeekData(year: Int, week: Int){
+    val listToReturn = ArrayList<IOScoresResponse.IOScoresResponseItem>()
+    repository.getApiService().getScoresByWeek(year, week, Constants.key).enqueue(object: Callback<IOScoresResponse>{
 
-    fun setShouldShowFirstButton(bool: Boolean) {
-        _shouldShowFirstButton.postValue(bool)
-    }
 
-    fun setDate(date: Date){
-        _currentDate.value = date
-    }
+        override fun onResponse(
+            call: Call<IOScoresResponse>,
+            response: Response<IOScoresResponse>
+        ) {
+                val responseData = response.body()
+            Timber.i("RESPONSE DATA FOR WEEK 10 = $responseData")
+            if (responseData != null) {
+                for (item in responseData) {
+                    if (item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE" && item.canceled != true) {
+                        Timber.i("TEST ITEM FROM WEEK = $item")
+                        //   Timber.i("Item added = ${item.awayTeam} : ${item.homeTeam} : ${item.date} : ${item.week}")
+                        listToReturn.add(item)
+                    }
+                }
 
-    fun callForSchedule(year: Int){
 
-        val dateToCheckForCache = _currentDate.value
-
-        _scheduleResult.value = repository.getSchedule(year)
-    }
-
-    fun getScheduleForWeek(week: Int) {
-        _listOfGames.value = repository.getScheduleForWeek(week)
-                //  Timber.i("SCHEDULE RESULT TURNED TO LIST OF GAMES = ${listOfGames.value}")
-
-    }
-
-    fun getWeekToPick(date: Date) {
-        when {
-            date.before(weeksArray[0].startDate) -> {
-                setWeek(1)
             }
-            date.before(weeksArray[1].startDate)&&date.after(weeksArray[0].startDate) -> {
-                setWeek(2)
-            }
-            date.before(weeksArray[2].startDate)&&date.after(weeksArray[1].startDate) -> {
-                setWeek(3)
-            }
-            date.before(weeksArray[3].startDate)&&date.after(weeksArray[2].startDate) -> {
-                setWeek(4)
-            }
-            date.before(weeksArray[4].startDate)&&date.after(weeksArray[3].startDate) -> {
-                setWeek(5)
-            }
-            date.before(weeksArray[5].startDate)&&date.after(weeksArray[4].startDate) -> {
-                setWeek(6)
-            }
-            date.before(weeksArray[6].startDate)&&date.after(weeksArray[5].startDate) -> {
-                setWeek(7)
-            }
-            date.before(weeksArray[7].startDate)&&date.after(weeksArray[6].startDate) -> {
-                setWeek(8)
-            }
-            date.before(weeksArray[8].startDate)&&date.after(weeksArray[7].startDate) -> {
-                setWeek(9)
-            }
-            date.before(weeksArray[9].startDate)&&date.after(weeksArray[8].startDate) -> {
-                setWeek(10)
-            }
-            date.before(weeksArray[10].startDate)&&date.after(weeksArray[9].startDate) -> {
-                setWeek(11)
-            }
-            date.before(weeksArray[11].startDate)&&date.after(weeksArray[10].startDate) -> {
-                setWeek(12)
-            }
-            date.before(weeksArray[12].startDate)&&date.after(weeksArray[11].startDate) -> {
-                setWeek(13)
-            }
-            date.before(weeksArray[13].startDate)&&date.after(weeksArray[12].startDate) -> {
-                setWeek(14)
-            }
-            date.before(weeksArray[14].startDate)&&date.after(weeksArray[13].startDate) -> {
-                setWeek(15)
-            }
-            date.before(weeksArray[15].startDate)&&date.after(weeksArray[14].startDate) -> {
-                setWeek(16)
-            }
-            date.before(weeksArray[16].startDate)&&date.after(weeksArray[15].startDate) -> {
-                setWeek(17)
-            }
+            _listOfGamesByWeek.value = listToReturn
+            setUpPickSheet()
         }
-    }
-    private fun setWeek(input: Int){
-        _upcomingWeek.value = input
-        _text.value = "Week $input"
-    }
 
-    fun setGameCount(games: Int){
-        _gameCount.value = games
-    }
+        override fun onFailure(call: Call<IOScoresResponse>, t: Throwable) {
+            Timber.i("Api call failed")
+        }
+    })
+}
+
 
     fun setUpPickSheet() {
         val returnList = ArrayList<Game>()
-        val resultWeek =_listOfGames.value
-       // Timber.i("_listOfGames value = ${listOfGames.value}")
+        val resultWeek = _listOfGamesByWeek.value
+        // Timber.i("_listOfGames value = ${listOfGames.value}")
         if (resultWeek != null) {
             var count = 0
 
-            for(item in resultWeek){
+            for (item in resultWeek) {
                 count++
                 //create detail string
+                Timber.i("TESTING============day = ${item.day}")
                 //var detailString = "${item.dateTime}"
                 val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
                 val formatter = SimpleDateFormat("EE, MMM yyyy")
-                val formattedDate = formatter.format( parser.parse(item.dateTime))
+                val formattedDate = formatter.format(parser.parse(item.dateTime))
                 //create a game object
 
                 val newGame = Game(
@@ -210,22 +167,57 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     getImageFromTeam(item.homeTeam!!),
                     getImageFromTeam(item.awayTeam!!),
                     count,
-                    formattedDate
+                    formattedDate,
+                    item.dateTime!!
                 )
                 Log.i("TEST", "${newGame.homeTeam}, ${newGame.awayTeam}, GAME ${newGame.game}")
                 //add to list for return value
                 returnList.add(newGame)
+                returnList.sortBy { it.dateTime }
                 //set live data value
-
             }
-            _teamsAndImages.value = returnList
+            _teamsAndImages.postValue(returnList)
             setGameCount(count)
-        }
+            setIsReadyForUi(true)
+            saveToDatabase(returnList)
+            fun fromValuesToString(value: java.util.ArrayList<Game>?): String? {
+                if (value == null) {
+                    return null
+                }
+                val gson = Gson()
+                val type = object : TypeToken<java.util.ArrayList<Game>>() {}.type
+                val result = gson.toJson(value, type)
+                Timber.i("TESTING=================RESULT OF CONVERSION = $result")
+                return result
+            }
 
-        Timber.i( " TEAMS AND IMAGES VALUE = ${_teamsAndImages.value}")
+            val forDatabase = fromValuesToString(returnList)
+
+            fun toOptionValuesList(value: String): java.util.ArrayList<Game>? {
+                if (value == null) {
+                    return (null)
+                }
+                val gson = Gson()
+                val type = object : TypeToken<ArrayList<Game>>() {}.type
+                val result = gson.fromJson<ArrayList<Game>>(value, type)
+                Timber.i("TESTING==========RESULT CONVERTING BACK TO OBJECT =\n $result")
+                return result
+            }
+            if (forDatabase != null) {
+                toOptionValuesList(forDatabase)
+            }
+            Timber.i(" TEAMS AND IMAGES VALUE = ${_teamsAndImages.value}")
+        }
     }
 
-    fun getImageFromTeam(input: String) : Int {
+    private fun saveToDatabase(returnList: ArrayList<Game>) {
+     //   roomRepository.saveMatchups(returnList)
+    }
+
+    private fun setIsReadyForUi(input: Boolean){
+        _isReadyForUi.postValue(input)
+    }
+    private fun getImageFromTeam(input: String) : Int {
         when(input) {
             "GB" -> {
                 return R.drawable.packers
@@ -327,5 +319,73 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             else -> return R.drawable.item_gradient
 
         }
+    }
+
+    fun setDate(date: Date){
+        _currentDate.value = date
+    }
+
+    fun getWeekToPick(date: Date) {
+        when {
+            date.before(weeksArray[0].startDate) -> {
+                setWeek(1)
+            }
+            date.before(weeksArray[1].startDate)&&date.after(weeksArray[0].startDate) -> {
+                setWeek(2)
+            }
+            date.before(weeksArray[2].startDate)&&date.after(weeksArray[1].startDate) -> {
+                setWeek(3)
+            }
+            date.before(weeksArray[3].startDate)&&date.after(weeksArray[2].startDate) -> {
+                setWeek(4)
+            }
+            date.before(weeksArray[4].startDate)&&date.after(weeksArray[3].startDate) -> {
+                setWeek(5)
+            }
+            date.before(weeksArray[5].startDate)&&date.after(weeksArray[4].startDate) -> {
+                setWeek(6)
+            }
+            date.before(weeksArray[6].startDate)&&date.after(weeksArray[5].startDate) -> {
+                setWeek(7)
+            }
+            date.before(weeksArray[7].startDate)&&date.after(weeksArray[6].startDate) -> {
+                setWeek(8)
+            }
+            date.before(weeksArray[8].startDate)&&date.after(weeksArray[7].startDate) -> {
+                setWeek(9)
+            }
+            date.before(weeksArray[9].startDate)&&date.after(weeksArray[8].startDate) -> {
+                setWeek(10)
+            }
+            date.before(weeksArray[10].startDate)&&date.after(weeksArray[9].startDate) -> {
+                setWeek(11)
+            }
+            date.before(weeksArray[11].startDate)&&date.after(weeksArray[10].startDate) -> {
+                setWeek(12)
+            }
+            date.before(weeksArray[12].startDate)&&date.after(weeksArray[11].startDate) -> {
+                setWeek(13)
+            }
+            date.before(weeksArray[13].startDate)&&date.after(weeksArray[12].startDate) -> {
+                setWeek(14)
+            }
+            date.before(weeksArray[14].startDate)&&date.after(weeksArray[13].startDate) -> {
+                setWeek(15)
+            }
+            date.before(weeksArray[15].startDate)&&date.after(weeksArray[14].startDate) -> {
+                setWeek(16)
+            }
+            date.before(weeksArray[16].startDate)&&date.after(weeksArray[15].startDate) -> {
+                setWeek(17)
+            }
+        }
+    }
+    private fun setWeek(input: Int){
+        _upcomingWeek.value = input
+        _text.value = "Week $input"
+    }
+
+    fun setGameCount(games: Int){
+        _gameCount.value = games
     }
 }

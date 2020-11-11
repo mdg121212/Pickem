@@ -35,5 +35,14 @@
     <string name="delete">Delete</string>
     <string name="duplicate">Duplicate</string>
     <string name="your_picks">Your Picks</string>
+    <string name="send_invitations_to_your_pool">Send invitations to your pool!</string>
+    <string name="user_email">User Email:</string>
+    <string name="search">Search</string>
+    <string name="todo">TODO</string>
+    <string name="view_picks">View Picks</string>
+    <string name="picks_submitted">Picks Submitted?</string>
+    <string name="check_to_show_if_picks_are_submitted">Check to show if picks are submitted</string>
+    <string name="view_pool">View Pool</string>
+    <string name="submit_your_picks">Submit Your Picks</string>
 
 </resources>

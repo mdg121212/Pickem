@@ -40,7 +40,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
                     android:layout_marginEnd="16dp"
-                    android:text="@{pool.name}"
+                    android:text="@{pool.poolName}"
                     android:textAlignment="center"
                     android:textSize="18sp"
                     android:textStyle="bold"

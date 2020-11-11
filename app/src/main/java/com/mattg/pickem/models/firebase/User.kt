@@ -7,14 +7,11 @@ class User {
     lateinit var name: String
     lateinit var email: String
     lateinit var userId: String
-    var picks: List<Pick>? = null
+    var picks = ArrayList<Pick>()
     var type: String? = null
-    var pools: String? = null
-    var invites: Boolean = false
-    var numberOfInvitesSent = 0
-    var listOfSentInvites = ArrayList<Map<String, String>>()
-    var listOfInviters = ArrayList<Map<String, String>>()
-    var activePools = ArrayList<Map<String, String>>()
+    private var pools: String? = null
+    private var invites: Boolean = false
+    var picksIn: Boolean? = null
 
     constructor()
 
@@ -22,41 +19,29 @@ class User {
         this.name = name
         this.email = email
         this.userId = userId
-        picks = null
+        this.picks
         type = null
         pools = null
+        this.picksIn
     }
-    constructor(name: String, email: String, userId: String, typeString: String?) {
+
+    constructor(name: String, email: String, userId: String, picks: ArrayList<Pick>?, typeString: String?) {
         this.name = name
         this.email = email
         this.userId = userId
-        picks = null
+        if (picks != null) {
+            this.picks = picks
+        }
         this.type = typeString
         pools = null
         this.invites = false
-    }
-    constructor(name: String, email: String, userId: String, picks: List<Pick>?, typeString: String?) {
-        this.name = name
-        this.email = email
-        this.userId = userId
-        this.picks = picks
-        this.type = typeString
-        pools = null
-        this.invites = false
-    }
-    constructor(name: String, email: String, userId: String, picks: List<Pick>?, typeString: String?, pools: String?) {
-        this.name = name
-        this.email = email
-        this.userId = userId
-        this.picks = picks
-        this.type = typeString
-        this.pools = pools
-        this.invites = false
+        this.picksIn
     }
 
-
-
-
-
-
+    fun setPicksIn(){
+        this.picksIn = true
+    }
+    fun addPicksToList(input: Pick){
+        picks.add(input)
+    }
 }

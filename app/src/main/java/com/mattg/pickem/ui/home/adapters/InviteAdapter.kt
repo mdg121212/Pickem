@@ -8,7 +8,7 @@ import com.mattg.pickem.databinding.PlayerRecyclerItemBinding
 import com.mattg.pickem.models.firebase.User
 
 
-class PoolAdapter(val context: Context, val users: ArrayList<User>, private val clickListener: RecyclerClickListener) :
+class InviteAdapter(val context: Context, private val users: ArrayList<User>, private val clickListener: RecyclerClickListener) :
       RecyclerView.Adapter<PoolUserViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PoolUserViewHolder {

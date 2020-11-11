@@ -5,5 +5,6 @@ data class Game(val homeTeam: String,
                 val homeImage: Int,
                 val awayImage: Int,
                 val game: Int,
-                val details: String) {
+                val details: String,
+                val dateTime: String) {
 }

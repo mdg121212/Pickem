@@ -31,14 +31,11 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up"/>
-        <action
-            android:id="@+id/action_navigation_home_to_poolManagementFragment"
-            app:destination="@id/poolManagementFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_dashboard"
-        android:name="com.mattg.pickem.ui.dashboard.InvitePoolFragment"
+        android:name="com.mattg.pickem.ui.dashboard.fragments.InvitePoolFragment"
         android:label="@string/title_dashboard"
         tools:layout="@layout/fragment_dashboard" >
         <action
@@ -55,6 +52,9 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up"/>
+        <action
+            android:id="@+id/action_navigation_dashboard_to_poolDetailFragment"
+            app:destination="@id/poolDetailFragment" />
     </fragment>
 
     <fragment
@@ -98,25 +98,6 @@
             app:popExitAnim="@anim/slide_up" />
     </fragment>
     <fragment
-        android:id="@+id/poolManagementFragment"
-        android:name="com.mattg.pickem.ui.home.fragments.PoolManagementFragment"
-        android:label="Manage Pools"
-        tools:layout="@layout/fragment_pool_management">
-        <action
-            android:id="@+id/action_poolManagementFragment_to_navigation_home"
-            app:destination="@id/navigation_home" />
-        <action
-            android:id="@+id/action_poolManagementFragment_to_navigation_dashboard"
-            app:destination="@id/navigation_dashboard" />
-        <action
-            android:id="@+id/action_poolManagementFragment_to_viewPicksFragment"
-            app:destination="@id/viewPicksFragment"
-            app:enterAnim="@anim/fade_in"
-            app:exitAnim="@anim/slide_down"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up" />
-    </fragment>
-    <fragment
         android:id="@+id/viewPicksFragment"
         android:name="com.mattg.pickem.detailui.ViewPicksFragment"
         android:label="Picks"
@@ -128,12 +109,10 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up" />
-        <action
-            android:id="@+id/action_viewPicksFragment_to_poolManagementFragment"
-            app:destination="@id/poolManagementFragment"
-            app:enterAnim="@anim/fade_in"
-            app:exitAnim="@anim/slide_down"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up" />
     </fragment>
+    <fragment
+        android:id="@+id/poolDetailFragment"
+        android:name="com.mattg.pickem.ui.dashboard.fragments.PoolDetailFragment"
+        android:label="Pool Details"
+        tools:layout="@layout/fragment_pool_detail"/>
 </navigation>
