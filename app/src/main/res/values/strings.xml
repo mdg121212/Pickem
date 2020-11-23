@@ -34,7 +34,6 @@
     <string name="create">Create</string>
     <string name="delete">Delete</string>
     <string name="duplicate">Duplicate</string>
-    <string name="your_picks">Your Picks</string>
     <string name="send_invitations_to_your_pool">Send invitations to your pool!</string>
     <string name="user_email">User Email:</string>
     <string name="search">Search</string>
@@ -44,5 +43,15 @@
     <string name="check_to_show_if_picks_are_submitted">Check to show if picks are submitted</string>
     <string name="view_pool">View Pool</string>
     <string name="submit_your_picks">Submit Your Picks</string>
+    <string name="view_saved_picks">View Saved Picks</string>
+    <string name="final_points">Final Points:</string>
+    <string name="your_picks">Your Picks</string>
+    <string name="picks_string">Picks:</string>
+    <string name="view_all_picks">View All Picks</string>
+    <string name="select_pool">Select Pool</string>
+    <string name="delete_pool">Delete Pool</string>
+    <string name="delete_change_picks">Delete/Change Picks</string>
+    <string name="pools">Pools</string>
+
 
 </resources>

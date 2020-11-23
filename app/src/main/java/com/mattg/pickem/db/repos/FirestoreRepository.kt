@@ -1,26 +1,19 @@
 package com.mattg.pickem.db.repos
 
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+
+
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
-
-import com.mattg.pickem.models.firebase.Invite
+import com.mattg.pickem.models.firebase.PickForDisplay
 import com.mattg.pickem.models.firebase.Pool
-import com.mattg.pickem.models.firebase.User
-import timber.log.Timber
 
-class FirestoreRepositiory {
 
-    var mFirebaseDatabaseInstance = FirebaseFirestore.getInstance()
+class FirestoreRepository {
+
+    private var mFirebaseDatabaseInstance = FirebaseFirestore.getInstance()
     var currentUser = FirebaseAuth.getInstance().currentUser
-
-    val _listOfInvitations = MutableLiveData<ArrayList<Invite>>()
-    val listOfInvitations: LiveData<ArrayList<Invite>> = _listOfInvitations
-
-    private val _returnListOfPoolPlayers = MutableLiveData<ArrayList<User>>()
 
 
     fun listenForInvitations(): DocumentReference {
@@ -29,7 +22,7 @@ class FirestoreRepositiory {
 
     fun resetUserInvitesField() {
         val usersInviteReceivedCollection = getUserBaseCollection(currentUser?.uid!!).collection("invitesReceived")
-        usersInviteReceivedCollection.addSnapshotListener { value, error ->
+        usersInviteReceivedCollection.addSnapshotListener { value, _ ->
             if (value!!.isEmpty) {
                 getUserBaseCollection(currentUser?.uid!!).update("invites", false)
             }
@@ -38,7 +31,7 @@ class FirestoreRepositiory {
 
     fun checkAreStillInvites(): Boolean {
         var returnBoolean = false
-        val invites = getUserBaseCollection(currentUser?.uid!!).collection("invitesReceived")
+        getUserBaseCollection(currentUser?.uid!!).collection("invitesReceived")
                 .get().addOnSuccessListener { documents ->
                     returnBoolean = !documents.isEmpty
 
@@ -55,7 +48,7 @@ class FirestoreRepositiory {
     fun checkForInvitations(snapshot: DocumentSnapshot): Boolean {
         var returnBoolean = false
         if (snapshot.exists()) {
-            val userRef = mFirebaseDatabaseInstance.collection("users")
+             mFirebaseDatabaseInstance.collection("users")
                     .document(currentUser!!.uid)
             if (snapshot.data?.get("invites") != null) {
                 returnBoolean = snapshot.data?.get("invites")!! == true
@@ -75,7 +68,7 @@ class FirestoreRepositiory {
 
     }
 
-    fun createPool(userId: String, poolData: HashMap<String, Any>): Pair<Boolean, String?> {
+    fun createPool(userId: String, poolData: HashMap<String, Any>, playerToAdd: HashMap<String, Any>): Pair<Boolean, String?> {
         var bool = false
         var idToPass = ""
         val userRef = getUserBaseCollection(userId).collection("pools")
@@ -84,7 +77,10 @@ class FirestoreRepositiory {
             bool = true
             idToPass = it.id
             //add reference to the document inside the document after it is created
-            idToPass.let { it1 -> userRef.document(it1).update("documentId", it1) }
+            idToPass.let { it1 ->
+                 userRef.document(it1).update("documentId", it1)
+                userRef.document(it1).collection("players").add(playerToAdd)
+            }
 
         }
                 .addOnFailureListener {
@@ -96,8 +92,7 @@ class FirestoreRepositiory {
     fun deletePool(poolId: String): Boolean {
         val poolToDelete = mFirebaseDatabaseInstance.collection("users/${currentUser?.uid!!}/pools").document(poolId)
         val docList = ArrayList<String>()
-        val children = poolToDelete.collection("players")
-                .addSnapshotListener { snapshot, error ->
+         poolToDelete.collection("players").addSnapshotListener { snapshot, error ->
                     if (error == null) {
                         if (snapshot != null) {
                             //create a list of items in the player collection
@@ -120,46 +115,36 @@ class FirestoreRepositiory {
 
 
 
-    fun createPoolsOnAccept(poolId: String, senderId: String, poolToCopy: Pool, playerToAdd: HashMap<String, Any>) {
-
+    fun createPoolsOnAccept(poolId: String, senderId: String, poolToCopy: Pool, playersToAdd: ArrayList<HashMap<String, Any>>) {
         val userRef = getUserBaseCollection(currentUser?.uid!!)
         val senderRef = getUserBaseCollection(senderId)
-        var idHolder = ""
+        var idHolder: String
         //add the pool to the current users collection
         val newPoolForCurrentUser = userRef.collection("pools").add(poolToCopy)
-        newPoolForCurrentUser.addOnCompleteListener { it ->
-            val id = it.result!!.id
+        newPoolForCurrentUser.addOnCompleteListener { docRef ->
+            val id = docRef.result!!.id
             idHolder = id
             //add the document id to the document in a field
-            userRef.collection("pools").document(idHolder).collection("players").add(playerToAdd)
-            userRef.collection("pools").document(id).update("documentId", id)
+            for(player in playersToAdd) {
+                userRef.collection("pools").document(idHolder).collection("players").add(player)
 
+                userRef.collection("pools").document(id).update("documentId", id)
+
+            }
         }
 
         val senderPoolRef = senderRef.collection("pools").document(poolId)
-        senderPoolRef.collection("players").add(playerToAdd)
+
+        val idFrom = senderPoolRef.collection("players")
+        val docId = idFrom.id
+        for(player in playersToAdd){
+            idFrom.add(player)
+            idFrom.document(docId).update("documentId", docId)
+        }
+
 
         resetUserInvitesField()
         checkAreStillInvites()
-    }
-
-
-
-    fun addPlayersToPool(poolId: String, userId: String) {
-        val poolRef = mFirebaseDatabaseInstance.collection("users").document(userId).collection("pools")
-                .document(poolId).get()
-                .addOnSuccessListener { snapshot ->
-                    if (snapshot.exists()) {
-                        val oldPlayers = snapshot.data
-                        for (entry in oldPlayers?.entries!!) {
-                            if (entry.key == "players") {
-                                Timber.i("Players data = ${entry.value}")
-                            }
-
-                        }
-                    }
-                }
-
     }
 
 
@@ -175,8 +160,7 @@ class FirestoreRepositiory {
 
 
     fun getUserBaseCollection(userId: String): DocumentReference {
-        val userReference = mFirebaseDatabaseInstance.collection("users").document(userId)
-        return userReference
+        return mFirebaseDatabaseInstance.collection("users").document(userId)
     }
 
     fun getUserPoolsBasePath(userId: String): CollectionReference {
@@ -185,7 +169,24 @@ class FirestoreRepositiory {
     }
 
 
+    fun addPicksToPoolDocument(personId: String, documentId: String, data: HashMap<String, Any>){
+        mFirebaseDatabaseInstance.collection("users").document(personId).collection("pools")
+                .document(documentId).collection("playerPicks").add(data).addOnSuccessListener {
+                it.update("documentId", it.id)
+            }
+
+    }
+
+    fun getPoolPlayersBasePath(userId: String, poolId: String): CollectionReference{
+        return mFirebaseDatabaseInstance.collection("users").document(userId).collection("pools").document(poolId).collection("players")
+    }
+
+
     fun updateUserBase(userId: String, data: HashMap<String, Any>): Task<Void> {
         return mFirebaseDatabaseInstance.collection("users").document(userId).update(data)
+    }
+
+    fun getPickDocumentForDelete(userId: String, poolDocId: String, playerPicksDocId: String){
+        mFirebaseDatabaseInstance.document("/users/{$userId}/pools/{$poolDocId}/playerPicks/{$playerPicksDocId}").delete()
     }
 }

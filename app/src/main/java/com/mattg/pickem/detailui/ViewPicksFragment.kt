@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
 import com.mattg.pickem.db.Pick
-import com.mattg.pickem.ui.home.adapters.PicksClickListener
+import com.mattg.pickem.utils.PicksClickListener
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import kotlinx.android.synthetic.main.fragment_view_picks.*
 

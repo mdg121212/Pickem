@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.mattg.pickem.databinding.PlayerRecyclerItemBinding
 import com.mattg.pickem.models.firebase.User
+import com.mattg.pickem.utils.RecyclerClickListener
 
 
 class InviteAdapter(val context: Context, private val users: ArrayList<User>, private val clickListener: RecyclerClickListener) :

@@ -6,9 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.mattg.pickem.databinding.InviteRecyclerItemBinding
 import com.mattg.pickem.models.firebase.Invite
-import timber.log.Timber
+import com.mattg.pickem.utils.InvitesClickListener
 
-class InviteRecyclerAdapter (val context: Context, private val invites: ArrayList<Invite>, private val clickListener:InvitesClickListener) :
+class InviteRecyclerAdapter (val context: Context, private val invites: ArrayList<Invite>, private val clickListener: InvitesClickListener) :
     RecyclerView.Adapter<InviteListViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InviteListViewHolder {

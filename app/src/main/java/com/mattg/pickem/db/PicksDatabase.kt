@@ -6,13 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities =[Pick::class, ApiResponseCached::class], version = 5, exportSchema = false)
+@Database(entities =[Pick::class, ApiResponseCached::class, WeekMatchUp::class], version = 8, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class PicksDatabase : RoomDatabase() {
 
         abstract fun picksDao(): PicksDao
         abstract fun apiDao(): ApiDao
-      //  abstract fun matchupDao(): MatchupDao
+        abstract fun matchupDao(): MatchupDao
 
     //singleton
     companion object {

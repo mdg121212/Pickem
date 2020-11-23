@@ -15,7 +15,7 @@ interface PicksDao {
     @Query("SELECT * FROM picks order by week")
     suspend fun getAllPics(): List<Pick>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPicks(picks: Pick)
 
     @Delete()
@@ -23,6 +23,9 @@ interface PicksDao {
 
     @Query("DELETE FROM picks")
     suspend fun clearPicks()
+
+    @Query("DELETE FROM picks where id = :id")
+    suspend fun deletePickById(id: Int)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updatePicks(picks: Pick)

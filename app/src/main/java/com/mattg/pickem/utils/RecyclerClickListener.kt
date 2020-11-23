@@ -1,7 +1,8 @@
-package com.mattg.pickem.ui.home.adapters
+package com.mattg.pickem.utils
 
 import com.mattg.pickem.db.Pick
 import com.mattg.pickem.models.firebase.Invite
+import com.mattg.pickem.models.firebase.PickForDisplay
 import com.mattg.pickem.models.firebase.User
 
 class RecyclerClickListener (val clickListener: (user: User, position: Int, uid: String) -> Unit){
@@ -20,4 +21,8 @@ class PicksClickListener(val clickListener: (pick: Pick, position: Int, option: 
 }
 class PoolPlayerListClickListener(val clickListener: (user: User, position: Int, action: Int) -> Unit) {
     fun onClick(user: User, position: Int, action: Int) = clickListener(user, position, action)
+}
+
+class DisplayPicksClickListener(val clickListener: (pick: PickForDisplay, position: Int, action: Int) -> Unit) {
+    fun onClick(pick: PickForDisplay, position: Int, action: Int) = clickListener(pick, position, action)
 }

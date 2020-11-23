@@ -14,9 +14,13 @@ import com.mattg.pickem.R
 import com.mattg.pickem.db.Pick
 import com.mattg.pickem.models.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
+import com.mattg.pickem.utils.SharedPrefHelper
+import com.mattg.pickem.utils.getDate
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -24,7 +28,7 @@ import kotlin.collections.ArrayList
 class HomeFragment : Fragment() {
 
     private lateinit var homeViewModel: HomeViewModel
-    private var selectionsString = ""
+ //   private var selectionsString = ""
     private var checkBoxList = ArrayList<RadioGroup>()
     private var pairList = ArrayList<Pair<RadioGroup, TextView>>()
     private var gamesCount = 0
@@ -86,7 +90,7 @@ class HomeFragment : Fragment() {
             tv_home_title.text = it
         })
 
-        getDate()
+        handleDate()
         val date = Date()
         currentDateToSaveForCache = date.toString()
         observeViewModel()
@@ -116,8 +120,8 @@ class HomeFragment : Fragment() {
                 }
 
                 if (finalString != null) {
-                    savePicksToDatabase(finalString)
-                    homeViewModel.setPicksString(finalString)
+                    savePicksToDatabase(finalString.first, finalString.second)
+                    homeViewModel.setPicksString(finalString.first)
                 }
                 findNavController().navigate(R.id.action_navigation_home_to_currentList)
             } else {
@@ -130,12 +134,12 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun savePicksToDatabase(picks: String) {
-        val pick = formatForPickDatabase(picks)
+    private fun savePicksToDatabase(picks: String, picksFormatted: String) {
+        val pick = formatForPickDatabase(picks, picksFormatted)
         homeViewModel.savePickToDatabase(pick)
     }
 
-    private fun formatForPickDatabase(picks: String): Pick {
+    private fun formatForPickDatabase(picks: String, picksFormatted: String): Pick {
         val saveString = picks.replace("[", "").replace("]", "")
 
         val splitString = saveString.split(",")
@@ -156,26 +160,15 @@ class HomeFragment : Fragment() {
             weekString,
             "name for now",
             subList.toString().trim(),
-            finalPoints.trim().toInt()
+            picksFormatted,
+            finalPoints.trim()
         )
     }
 
-    private fun getDate() {
-        val currentTime = SimpleDateFormat(
-            " yyyy-M-dd",
-            Locale.getDefault()
-        ).format(Date())
 
-        val splitDateString = currentTime.split("-")
-        val dateToCheck: Date = Date(
-            splitDateString[0].trim().toInt(),
-            splitDateString[1].trim().toInt(),
-            splitDateString[2].trim().toInt()
-        )
-        Timber.i(" $dateToCheck")
-        Timber.i(currentTime)
-        checkDate(dateToCheck)
-
+    private fun handleDate(){
+        Timber.i("TESTINGTESTING-------->DATE ${getDate()}")
+        checkDate(getDate())
     }
 
 
@@ -186,7 +179,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun checkDate(date: Date) {
-        homeViewModel.getWeekToPick(date)
+        val week = homeViewModel.getWeekToPick(date)
+        //adding the week string to shared prefs to use app wide
+        SharedPrefHelper.addWeekToPrefs(requireContext(), week)
         homeViewModel.setDate(date)
         Timber.i("Home ViewModel upcoming week value is = ${homeViewModel.upcomingWeek.value}")
     }
@@ -196,7 +191,7 @@ class HomeFragment : Fragment() {
         //setting text values for list
         var endString = ""
         var listIterationCounter = 0
-        //for ((count, item) in list.withIndex())
+
         for ((count, item) in list.withIndex()) {
             if (listIterationCounter > gamesNumber!!) {
                 break
@@ -285,8 +280,9 @@ class HomeFragment : Fragment() {
         score: String,
         week: String,
         date: String
-    ): String {
+    ): Pair<String, String> {
         val pickList = ArrayList<String>()
+        val pickList2 = ArrayList<String>()
         for (group in list) {
 
             val homeTeamButton = (group[1] as RadioButton)
@@ -294,9 +290,11 @@ class HomeFragment : Fragment() {
             if (homeTeamButton.isChecked) {
                 val text = homeTeamButton.text.toString()
                 pickList.add(text)
+                pickList2.add(text)
             } else if (awayTeamButton.isChecked) {
                 val text = awayTeamButton.text.toString()
                 pickList.add(text)
+                pickList2.add(text)
             }
 
         }
@@ -304,9 +302,10 @@ class HomeFragment : Fragment() {
         pickList.add(week)
         pickList.add(date)
         val returnString = pickList.toString()
+        val returnFormattedString = pickList2.toString()
 
         Timber.i(returnString)
-        return returnString
+        return Pair(returnString, returnFormattedString)
     }
 
     private fun observeViewModel() {
@@ -322,9 +321,10 @@ class HomeFragment : Fragment() {
 
     private fun emptyHomeScreenButtonClick() {
 
-        homeViewModel.upcomingWeek.value!!.let { it1 ->
-
-            homeViewModel.getWeekData(2020, it1)
+        homeViewModel.upcomingWeek.value?.let { it1 ->
+           CoroutineScope(Dispatchers.IO).launch {
+               homeViewModel.getWeekData(2020, it1)
+           }
         }
     }
 
@@ -342,6 +342,10 @@ class HomeFragment : Fragment() {
             }
             R.id.mnu_logout -> {
                 logout()
+            }
+            R.id.mnu_view_saved_picks ->{
+                val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null)
+                findNavController().navigate(R.id.action_navigation_home_to_currentList)
             }
         }
         return true

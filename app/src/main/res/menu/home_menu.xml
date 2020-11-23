@@ -5,4 +5,6 @@
         android:id="@+id/mnu_start_pool"/>
     <item android:title="@string/logout"
         android:id="@+id/mnu_logout"/>
+    <item android:title="@string/view_saved_picks"
+        android:id="@+id/mnu_view_saved_picks"/>
 </menu>

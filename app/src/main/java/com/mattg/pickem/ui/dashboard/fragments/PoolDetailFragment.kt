@@ -1,21 +1,25 @@
 package com.mattg.pickem.ui.dashboard.fragments
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.*
-import androidx.fragment.app.Fragment
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavArgs
-import androidx.navigation.NavArgsLazy
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
 import com.mattg.pickem.models.firebase.User
 import com.mattg.pickem.ui.dashboard.PoolViewModel
 import com.mattg.pickem.ui.dashboard.adapters.PoolPlayerListAdapter
-import com.mattg.pickem.ui.home.adapters.PoolPlayerListClickListener
-import kotlinx.android.synthetic.main.create_pool_dialog.*
+import com.mattg.pickem.ui.home.adapters.InviteAdapter
+import com.mattg.pickem.utils.PicksClickListener
+import com.mattg.pickem.utils.PoolPlayerListClickListener
+import com.mattg.pickem.utils.RecyclerClickListener
+import com.mattg.pickem.utils.SharedPrefHelper
 import kotlinx.android.synthetic.main.fragment_pool_detail.*
+import kotlinx.android.synthetic.main.invite_search_dialog.*
 import timber.log.Timber
 
 
@@ -23,20 +27,23 @@ class PoolDetailFragment : Fragment() {
 
     private lateinit var poolViewModel: PoolViewModel
     private lateinit var clickListener: PoolPlayerListClickListener
-    private lateinit var args: NavArgs
+    private lateinit var picksClickListener: PicksClickListener
+    private lateinit var inviteClickListener: RecyclerClickListener
+
+    private var currentId: String? = null
+    val args: PoolDetailFragmentArgs by navArgs()
+    private var werePicksPicked = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+        werePicksPicked = args.werePicksJustSelected
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         poolViewModel = ViewModelProvider(requireActivity()).get(PoolViewModel::class.java)
-
-
-
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_pool_detail, container, false)
     }
@@ -44,68 +51,184 @@ class PoolDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
         getPoolDetails()
+        observeViewModel()
+
+        val currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext())
+        tv_pool_detail_week.text = currentWeek
+
+        if (werePicksPicked) {
+            submitPicks()
+        }
+        werePicksPicked = false
+
+        if (poolViewModel.currentPoolOwnerId.value == poolViewModel.user.uid) {
+            Timber.i("NEWSCREEN this person is the pool owner can do more logic for managers only here")
+        }
+        btn_invite_players.setOnClickListener {
+
+            if (poolViewModel.currentPool.value != null) {
+                showInviteDialog()
+            } else {
+                Toast.makeText(requireContext(), "Select a pool", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+    }
+
+    private fun populateRecycler(list: ArrayList<User>?) {
+        if(!list.isNullOrEmpty()){
+            showInviteRecycler()
+            hidePlayersRecycler()
+            val recycler = rv_invitations
+            inviteClickListener = RecyclerClickListener { user, _, id ->
+                //  sendInvite(user, id)
+                poolViewModel.sendInvitation(id)
+                list.remove(user)
+                Toast.makeText(requireContext(), "Invitation sent to ${user.name}", Toast.LENGTH_SHORT).show()
+                hideInviteRecycler()
+                showPlayersRecycler()
+            }
+            val userAdapter = InviteAdapter(requireContext(), list, inviteClickListener)
+            val userLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            recycler.apply {
+                layoutManager = userLayoutManager
+                adapter = userAdapter
+            }
+        } else {
+            Toast.makeText(requireContext(), "No user found with that email", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    private fun showInviteDialog() {
+        val invitationDialog = Dialog(requireContext())
+        invitationDialog.apply {
+            setContentView(R.layout.invite_search_dialog)
+            btn_invite_search.setOnClickListener {
+                //clicked search, change visibility here
+                if (et_email_search.text.toString().isBlank()) {
+                    Toast.makeText(requireContext(), "Please enter an email", Toast.LENGTH_SHORT).show()
+                } else {
+                    poolViewModel.searchForUsers(et_email_search.text.toString().trim())
+                    invitationDialog.dismiss()
+                }
+            }
+            btn_invite_cancel.setOnClickListener {
+
+                invitationDialog.dismiss()
+            }
+        }.show()
         observeViewModel()
     }
 
-    private fun getPoolDetails() {
-        //set title
-       // tv_pool_detail_title.text = poolViewModel.currentPoolName.value
-        //get week
-
-        //use id to get list of players
-        val currentId = poolViewModel.currentPool.value
-        val players = ArrayList<User>()
-        if (currentId != null) {
-            poolViewModel.getPoolPlayers(currentId)
-        }
-
+    private fun showInviteRecycler() {
+        val recycler = rv_invitations
+        recycler.visibility = View.VISIBLE
     }
-
-    fun observeViewModel(){
-        poolViewModel.currentPoolPlayers.observe(viewLifecycleOwner){
-            Timber.i("TESTING, list of players value = ${it.size}")
-            setupPoolPlayerListRecycler(it)
-        }
-        poolViewModel.currentPoolName.observe(viewLifecycleOwner){
-            tv_pool_detail_title.text = it
-        }
-    }
-    fun setupPoolPlayerListRecycler(list: ArrayList<User>) {
+    private fun showPlayersRecycler() {
         val recycler = rv_pool_players
-        clickListener = PoolPlayerListClickListener { user, position, int ->
-            when(int){
-                1  -> {
-                    showPicksDialog(user)
+        recycler.visibility = View.VISIBLE
+    }
+    private fun hideInviteRecycler(){
+        val recycler = rv_invitations
+        recycler.visibility = View.INVISIBLE
+    }
+
+    private fun hidePlayersRecycler() {
+        val recycler = rv_pool_players
+        recycler.visibility = View.INVISIBLE
+    }
+
+    private fun getPoolDetails() {
+        //use id to get list of players
+        currentId = poolViewModel.currentPool.value.toString()
+
+        if (currentId != null) {
+            poolViewModel.getPoolPlayers(currentId!!)
+            poolViewModel.getSpecificPool(currentId!!)
+            poolViewModel.getPoolPicks(currentId!!)
+            tv_pool_detail_owner.text = poolViewModel.currentPoolOwnerName.value.toString()
+        }
+        val poolName = args.poolName
+        if (!poolName.isNullOrEmpty()) {
+            tv_pool_detail_title.text = poolName
+        }
+
+
+    }
+
+    private fun observeViewModel() {
+        poolViewModel.currentPoolPlayers.observe(viewLifecycleOwner) { playerList ->
+            setupPoolPlayerListRecycler(playerList)
+        }
+        poolViewModel.usersList.observe(viewLifecycleOwner) { it1 ->
+            populateRecycler(it1)
+        }
+    }
+
+    private fun setupPoolPlayerListRecycler(list: ArrayList<User>) {
+        val recycler = rv_pool_players
+        clickListener = PoolPlayerListClickListener { user, _, int ->
+            when (int) {
+                1 -> {
+
                 }
             }
         }
-        val poolPlayersAdapter = PoolPlayerListAdapter(requireContext(), list, clickListener)
-        val poolPlayersLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-        recycler.apply{
-            layoutManager = poolPlayersLayoutManager
-            adapter = poolPlayersAdapter
+
+        poolViewModel.currentPoolPlayersPicks.observe(viewLifecycleOwner) {
+            for (item in it) {
+                val pickSubmitterId = item.playerId
+                for (user in list) {
+                    val idToMatch = user.userId
+                    if (idToMatch == pickSubmitterId) {
+                        user.picksIn = true
+                    }
+                }
+            }
+
+            val poolPlayersAdapter = PoolPlayerListAdapter(requireContext(), list, clickListener)
+            val poolPlayersLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            recycler.apply {
+                layoutManager = poolPlayersLayoutManager
+                adapter = poolPlayersAdapter
+            }
         }
-
-    }
-    private fun showSubmitPicksDialog(){
-
     }
 
-    private fun showPicksDialog(user: User) {
-        Toast.makeText(requireContext(), "Picks will be here", Toast.LENGTH_SHORT).show()
+
+    private fun submitPicks() {
+        val currentPicks = poolViewModel.currentSelectedPicks.value
+        currentPicks?.let {
+            poolViewModel.addPicksForUserInPool(it, poolViewModel.user.uid)
+            Toast.makeText(requireContext(), "Picks added", Toast.LENGTH_LONG).show()
+            poolViewModel.resetSelectedPicks()
+        }
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         requireActivity().menuInflater.inflate(R.menu.pool_detail_menu, menu)
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-        R.id.mnu_submit_picks -> {
-            showSubmitPicksDialog()
-                 }
+        when (item.itemId) {
+            R.id.mnu_submit_picks -> {
+                // showSubmitPicksDialog()
+                val action = PoolDetailFragmentDirections
+                        .actionPoolDetailFragmentToCurrentList(true, tv_pool_detail_title.text.toString())
+                findNavController().navigate(action)
             }
+            R.id.mnu_view_all_picks -> {
+                this.onDetach()
+                findNavController().navigate(R.id.action_poolDetailFragment_to_poolPlayersPicksFragment)
+            }
+        }
+
         return true
     }
 
