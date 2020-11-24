@@ -168,5 +168,13 @@
         android:id="@+id/poolPlayersPicksFragment"
         android:name="com.mattg.pickem.ui.dashboard.fragments.PoolPlayersPicksFragment"
         android:label="Pool Picks"
-        tools:layout="@layout/fragment_pool_players_picks" />
+        tools:layout="@layout/fragment_pool_players_picks" >
+        <action
+            android:id="@+id/action_poolPlayersPicksFragment_to_poolDetailFragment"
+            app:destination="@id/poolDetailFragment" />
+        <argument
+            android:name="action"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
 </navigation>

@@ -89,9 +89,22 @@ class FirestoreRepository {
         return Pair(bool, idToPass)
     }
 
-    fun deletePool(poolId: String): Boolean {
+    fun deletePool(poolId: String, poolName: String): Boolean {
         val poolToDelete = mFirebaseDatabaseInstance.collection("users/${currentUser?.uid!!}/pools").document(poolId)
         val docList = ArrayList<String>()
+        val playersInPoolToDelete = poolToDelete.collection("players").addSnapshotListener { value, error ->
+            for(player in value!!.documents){
+                val playerId = player.get("playerId").toString()
+                mFirebaseDatabaseInstance.collection("users").document(playerId).collection("pools")
+                        .whereEqualTo("poolName", poolName).get().addOnSuccessListener {
+                            for(doc in it.documents){
+                                val id = doc.get("documentId").toString()
+                                mFirebaseDatabaseInstance.collection("users").document(playerId)
+                                        .collection("pools").document(id).delete()
+                            }
+                        }
+            }
+        }
          poolToDelete.collection("players").addSnapshotListener { snapshot, error ->
                     if (error == null) {
                         if (snapshot != null) {

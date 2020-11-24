@@ -24,7 +24,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:textAlignment="center"
-            android:textSize="24sp"
+            android:textSize="30sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -37,10 +37,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="18sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_title"
-            tools:text="week text" />
+            tools:text="current week" />
 
         <TextView
             android:id="@+id/tv_pool_detail_owner"
@@ -49,7 +50,7 @@
             android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_week"
+            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_upcoming_week"
             tools:text="Manager Name" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -69,7 +70,7 @@
             android:id="@+id/btn_invite_players"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="8dp"
             android:text="@string/invite_players"
             android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
@@ -86,5 +87,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/rv_pool_players" />
+
+        <TextView
+            android:id="@+id/tv_pool_detail_upcoming_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_week"
+            tools:text="upcoming week text" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

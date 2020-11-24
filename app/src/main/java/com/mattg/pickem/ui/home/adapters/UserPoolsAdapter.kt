@@ -22,6 +22,8 @@ RecyclerView.Adapter<UserPoolListViewHolder>(){
     override fun getItemCount(): Int {
         return pools.size
     }
+
+
 }
 
 class UserPoolListViewHolder private constructor(private val binding: PoolRecyclerItemBinding)
@@ -37,10 +39,10 @@ class UserPoolListViewHolder private constructor(private val binding: PoolRecycl
         binding.pool = item
        // binding.tvActivePlayers.text = item.playerCount.toString()
         binding.btnSelectPool.setOnClickListener {
-            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 1, item.poolName)
+            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 1, item.poolName, item.ownerName)
         }
         binding.btnDeletePool.setOnClickListener {
-            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 2, item.poolName)
+            clickListener.onClickPoolItem(item.documentId, item.ownerId, adapterPosition, 2, item.poolName, item.ownerName)
         }
     }
 

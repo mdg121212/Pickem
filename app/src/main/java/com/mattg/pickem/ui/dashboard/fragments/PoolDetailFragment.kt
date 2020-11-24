@@ -14,10 +14,7 @@ import com.mattg.pickem.models.firebase.User
 import com.mattg.pickem.ui.dashboard.PoolViewModel
 import com.mattg.pickem.ui.dashboard.adapters.PoolPlayerListAdapter
 import com.mattg.pickem.ui.home.adapters.InviteAdapter
-import com.mattg.pickem.utils.PicksClickListener
-import com.mattg.pickem.utils.PoolPlayerListClickListener
-import com.mattg.pickem.utils.RecyclerClickListener
-import com.mattg.pickem.utils.SharedPrefHelper
+import com.mattg.pickem.utils.*
 import kotlinx.android.synthetic.main.fragment_pool_detail.*
 import kotlinx.android.synthetic.main.invite_search_dialog.*
 import timber.log.Timber
@@ -51,13 +48,27 @@ class PoolDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext())
+        val lastWeek = SharedPrefHelper.getLastOrCurrentWeekFromPrefs(requireContext())
+
 
         getPoolDetails()
         observeViewModel()
+        poolViewModel.getScoresForWeek(11)
+        poolViewModel.finalScoresFromWeek.observe(viewLifecycleOwner){
+            if(it != null){
+                poolViewModel.decideWinner(lastWeek!!, poolViewModel.currentPool.value!!, 65)
+                poolViewModel.playerScoresCalculatedList.observe(viewLifecycleOwner){
+                    if(it != null){
+                        displayWinner(it)
+                    }
+                }
+            }
+        }
+//        poolViewModel.decideWinner(lastWeek!!, poolViewModel.currentPool.value!!, 65)
 
-        val currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext())
-        tv_pool_detail_week.text = currentWeek
-
+        tv_pool_detail_upcoming_week.text = "Can still submit picks for: $currentWeek"
+        tv_pool_detail_week.text = "Current Week is: $lastWeek"
         if (werePicksPicked) {
             submitPicks()
         }
@@ -76,6 +87,33 @@ class PoolDetailFragment : Fragment() {
         }
 
 
+    }
+
+    private fun displayWinner(it: ArrayList<Pair<String, Pair<Int, Int>>>) {
+        val list = it.sortedByDescending { it.second.first }
+        Timber.i("+++++++++list of picks sorted is $list")//this sorts by the number correct
+        val highScore = list.first().second.first
+        Timber.i("++++++++highScore is $highScore")//this gets the number correct
+        val highScoreTiesList = ArrayList<Pair<String, Pair<Int, Int>>>()
+        for(item in it){
+            if (item.second.first == highScore){
+                highScoreTiesList.add(item)
+            }
+        }
+        Timber.i("+++++++highScoresTiesList = $highScoreTiesList")
+        if(highScoreTiesList.size > 1){
+            if(highScoreTiesList.size == 2){
+                val firstPlayer = highScoreTiesList[0]
+                val secondPlayer = highScoreTiesList[1]
+                Timber.i("++++++++firstPlayer is ${firstPlayer.first} with ${firstPlayer.second.second} points")
+                Timber.i("++++++++secondPlayer is ${secondPlayer.first} with ${secondPlayer.second.second} points")
+                val winner =
+                        getWinnerByFinalPoints(firstPlayer.first, firstPlayer.second.second,
+                                secondPlayer.first, secondPlayer.second.second, 35)
+                Toast.makeText(requireContext(), "The winner is $winner", Toast.LENGTH_SHORT).show()
+            }
+        } else
+        Toast.makeText(requireContext(), "The winner is ${list.first().first}", Toast.LENGTH_SHORT).show()
     }
 
     private fun populateRecycler(list: ArrayList<User>?) {
@@ -149,8 +187,16 @@ class PoolDetailFragment : Fragment() {
         if (currentId != null) {
             poolViewModel.getPoolPlayers(currentId!!)
             poolViewModel.getSpecificPool(currentId!!)
-            poolViewModel.getPoolPicks(currentId!!)
-            tv_pool_detail_owner.text = poolViewModel.currentPoolOwnerName.value.toString()
+            poolViewModel.getPoolPicks(currentId!! )
+
+            //for setting the pool owner display
+            val poolOwnerName =  poolViewModel.currentPoolOwnerName.value.toString()
+            if(poolOwnerName == poolViewModel.user.displayName){
+                tv_pool_detail_owner.text = "Your Pool"
+            } else {
+                tv_pool_detail_owner.text = "Pool Owner: $poolOwnerName"
+            }
+
         }
         val poolName = args.poolName
         if (!poolName.isNullOrEmpty()) {
@@ -167,6 +213,10 @@ class PoolDetailFragment : Fragment() {
         poolViewModel.usersList.observe(viewLifecycleOwner) { it1 ->
             populateRecycler(it1)
         }
+        poolViewModel.callApiForCurrentWeek()
+//        poolViewModel.apiCallCurrentWeek.observe(viewLifecycleOwner){currentWeek ->
+//            tv_pool_detail_week.text = "CURRENT WEEK: $currentWeek"
+//        }
     }
 
     private fun setupPoolPlayerListRecycler(list: ArrayList<User>) {
@@ -227,6 +277,8 @@ class PoolDetailFragment : Fragment() {
                 this.onDetach()
                 findNavController().navigate(R.id.action_poolDetailFragment_to_poolPlayersPicksFragment)
             }
+
+
         }
 
         return true

@@ -12,9 +12,9 @@ class InvitesClickListener (val clickListener: (invite: Invite, position: Int, d
     fun onClickInviteItem(invite: Invite, position: Int, delete: Int) =
         clickListener(invite, position, delete)
 }
-class UserPoolClickListener(val clickListener: (poolId: String, poolOwner: String, position: Int, buttonInt: Int, poolName: String) -> Unit) {
-    fun onClickPoolItem(poolId: String, poolOwner: String, position: Int, buttonInt: Int, poolName: String)
-            = clickListener(poolId, poolOwner, position, buttonInt, poolName)
+class UserPoolClickListener(val clickListener: (poolId: String, poolOwner: String, position: Int, buttonInt: Int, poolName: String, poolOwnerName: String) -> Unit) {
+    fun onClickPoolItem(poolId: String, poolOwner: String, position: Int, buttonInt: Int, poolName: String, poolOwnerName: String)
+            = clickListener(poolId, poolOwner, position, buttonInt, poolName, poolOwnerName)
 }
 class PicksClickListener(val clickListener: (pick: Pick, position: Int, option: Int) -> Unit) {
     fun onClickPick(pick: Pick, position: Int, option: Int) = clickListener(pick, position, option)

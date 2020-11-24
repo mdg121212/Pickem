@@ -160,13 +160,13 @@ class ViewPoolsFragment : BaseFragment() {
     }
 
     private fun setUpPoolRecycler(list: ArrayList<Pool>) {
-        userPoolsClickListener = UserPoolClickListener{ poolId, poolOwner, _, buttonInt, poolName ->
+        userPoolsClickListener = UserPoolClickListener{ poolDocId, poolOwner, position, buttonInt, poolName, poolOwnerName ->
             when (buttonInt){
                 1 -> {
-                    setPool(poolId, poolOwner, poolName, poolOwner)
+                    setPool(poolDocId, poolOwner, poolName, poolOwnerName)
                 }
                 2 -> {
-                   deletePoolDialog(poolId)
+                   deletePoolDialog(poolDocId, poolName)
                 }
             }
         }
@@ -179,10 +179,10 @@ class ViewPoolsFragment : BaseFragment() {
         }
     }
 
-    private fun deletePoolDialog(poolId: String){
+    private fun deletePoolDialog(poolId: String, poolName: String){
         AlertDialog.Builder(requireContext()).setTitle("Delete Pool?")
             .setPositiveButton("Delete"){ dialog, _ ->
-                poolViewModel.deletePool(poolId)
+                poolViewModel.deletePool(poolId, poolName)
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel"){ dialog, _ ->
@@ -191,11 +191,11 @@ class ViewPoolsFragment : BaseFragment() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun setPool(poolIdToSet: String, poolOwner: String, poolName: String, poolOwnerName: String) {
-        currentPool = "$poolOwner : $poolIdToSet"
+    private fun setPool(poolIdToSet: String, poolOwnerId: String, poolName: String, poolOwnerName: String) {
+        currentPool = "$poolOwnerId : $poolIdToSet"
         poolIdHolder = poolIdToSet
 
-        poolViewModel.setCurrentPool(poolIdToSet, poolName, poolOwner, poolOwnerName)
+        poolViewModel.setCurrentPool(poolIdToSet, poolName, poolOwnerId, poolOwnerName)
 
             val action = ViewPoolsFragmentDirections.actionNavigationDashboardToPoolDetailFragment(
                 null,

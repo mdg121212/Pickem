@@ -52,6 +52,13 @@
     <string name="delete_pool">Delete Pool</string>
     <string name="delete_change_picks">Delete/Change Picks</string>
     <string name="pools">Pools</string>
+    <string name="filter_by_week">Filter by week:</string>
+    <string name="submit">Submit</string>
+    <string name="enter_week">Enter week:</string>
+    <string name="view_this_weeks_picks">View this weeks picks</string>
+    <string name="view_upcoming_picks">View upcoming picks</string>
+    <string name="view_pool_picks">View Pool Picks</string>
+    <string name="team_logo">team logo</string>
 
 
 </resources>

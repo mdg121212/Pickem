@@ -26,6 +26,7 @@ class CurrentList : Fragment() {
     private lateinit var clickListener: PicksClickListener
     private lateinit var poolViewModel: PoolViewModel
     val args : CurrentListArgs by navArgs()
+    private var wasFromDetail : Boolean ?= null
 
 
     override fun onCreateView(
@@ -41,7 +42,7 @@ class CurrentList : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         getPicks()  //call database
         observeViewModel() //observe database / view model data
-        val wasFromDetail = args.wasFromPoolDetail
+         wasFromDetail = args.wasFromPoolDetail
 
     }
 
@@ -54,7 +55,7 @@ class CurrentList : Fragment() {
             tv_current_list_title.text = if(it.isNullOrBlank()) "No data" else it
         }
         homeViewModel.picksFromDatabase.observe(viewLifecycleOwner){
-            Timber.i("TESTINGDATA ====== picks size at live data when loading : $it")
+
             setUpRecycler(it)
         }
 
@@ -73,19 +74,51 @@ class CurrentList : Fragment() {
     }
 
     private fun showPicksOptionsDialog(picks: Pick){
-        Toast.makeText(requireContext(), "TODO BABY", Toast.LENGTH_SHORT).show()
-        AlertDialog.Builder(requireContext()).setTitle("Picks options")
-            .setPositiveButton("Send/apply picks"){_, _ ->
-                showUsePicksDialog(picks)
-            }
-            .setNeutralButton("Delete picks"){_, _ ->
-                deletePicks(id)
+        when(wasFromDetail) {
+            true -> {
+                AlertDialog.Builder(requireContext()).setTitle("Options")
+                        .setPositiveButton("Choose picks"){_, _ ->
+                            poolViewModel.setPicks(picks)
+                            val action = CurrentListDirections.actionCurrentListToPoolDetailFragment(null,args.poolName, true)
+                            findNavController().navigate(action)
+                        }
+                        .setNeutralButton("Cancel"){dialog, _ ->
+                            dialog.dismiss()
 
+                        }
+                        .show()
             }
-            .setNegativeButton("Cancel"){dialog, _ ->
-                dialog.dismiss()
+                false -> {
+
+                    AlertDialog.Builder(requireContext()).setTitle("Options")
+                            .setPositiveButton("Send Picks") { _, _ ->
+                                Toast.makeText(requireContext(), "ADD EMAIL/TEXT SEND CAPABILITY", Toast.LENGTH_SHORT).show()
+                            }
+                            .setNeutralButton("Cancel") { dialog , _ ->
+                                dialog.dismiss()
+                            }
+                            .setNegativeButton("Delete Picks") { _ , _ ->
+                                deletePicks(picks.id)
+                                homeViewModel.retrievePicksFromDatabase()
+                            }
+                            .show()
+                }
+            else -> {
+                Toast.makeText(requireContext(), "Error getting your picks, try again", Toast.LENGTH_SHORT).show()
             }
-            .show()
+        }
+//        AlertDialog.Builder(requireContext()).setTitle("Picks options")
+//            .setPositiveButton("Choose picks"){_, _ ->
+//                showUsePicksDialog(picks)
+//            }
+//            .setNeutralButton("Delete picks"){_, _ ->
+//                deletePicks(id)
+//
+//            }
+//            .setNegativeButton("Cancel"){dialog, _ ->
+//                dialog.dismiss()
+//            }
+//            .show()
     }
 
     private fun deletePicks(id: Int) {
@@ -94,6 +127,7 @@ class CurrentList : Fragment() {
     }
 
     private fun showUsePicksDialog(picks: Pick) {
+
         AlertDialog.Builder(requireContext()).setTitle("Picks")
                 .setPositiveButton("Add picks to a weekly pool"){dialog, _ ->
                     if(args.wasFromPoolDetail){

@@ -181,7 +181,9 @@ class HomeFragment : Fragment() {
     private fun checkDate(date: Date) {
         val week = homeViewModel.getWeekToPick(date)
         //adding the week string to shared prefs to use app wide
-        SharedPrefHelper.addWeekToPrefs(requireContext(), week)
+        SharedPrefHelper.addWeekToPrefs(requireContext(), week.first)
+        SharedPrefHelper.addLastOrCurrentWeekToPrefs(requireContext(), week.second)
+
         homeViewModel.setDate(date)
         Timber.i("Home ViewModel upcoming week value is = ${homeViewModel.upcomingWeek.value}")
     }

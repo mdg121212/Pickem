@@ -35,6 +35,32 @@ fun getProgressDrawable(context: Context) : CircularProgressDrawable {
 
 }
 
+fun getWinnerByFinalPoints(firstName: String, firstScore: Int, secondName: String, secondScore: Int, finalScore: Int) : String {
+
+    var returnString = "TIE"
+
+    if(firstScore == secondScore){
+        return returnString
+    } else
+    if(firstScore > finalScore && secondScore < finalScore){
+        returnString =  secondName
+    }else
+    if(secondScore > finalScore && firstScore < finalScore){
+        returnString = firstName
+    }else
+    if(firstScore <= finalScore && secondScore <= finalScore){
+        val firstDiff = finalScore - firstScore
+        val secondDiff = finalScore - secondScore
+        if(firstDiff > secondDiff){
+            returnString = secondName
+        }
+        if(secondDiff > firstDiff){
+            returnString = firstName
+        }
+    }
+    return returnString
+}
+
     fun RadioButton.setTeamImage(imageId: Int) {
       this.setBackgroundResource(imageId)
     }

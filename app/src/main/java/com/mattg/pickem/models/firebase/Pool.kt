@@ -2,7 +2,7 @@ package com.mattg.pickem.models.firebase
 
 class Pool {
     lateinit var poolName: String
-    lateinit var owner: String
+    lateinit var ownerName: String
     lateinit var ownerId: String
     lateinit var documentId: String
     var week: Int? = null
@@ -12,7 +12,7 @@ class Pool {
 
     constructor(poolName: String, poolOwner: String, poolOwnerId: String, poolDocumentId: String) {
         this.poolName = poolName
-        this.owner = poolOwner
+        this.ownerName = poolOwner
         this.ownerId = poolOwnerId
         this.documentId = poolDocumentId
 
