@@ -6,10 +6,7 @@ import com.mattg.pickem.db.Pick
 import com.mattg.pickem.db.repos.ApiCallRepository
 import com.mattg.pickem.db.repos.FirestoreRepository
 import com.mattg.pickem.db.repos.RoomRepo
-import com.mattg.pickem.models.firebase.Invite
-import com.mattg.pickem.models.firebase.PickForDisplay
-import com.mattg.pickem.models.firebase.Pool
-import com.mattg.pickem.models.firebase.User
+import com.mattg.pickem.models.firebase.*
 import com.mattg.pickem.models.iomodels.IOWeekScoresResponse
 import com.mattg.pickem.utils.Constants
 import kotlinx.coroutines.launch
@@ -65,7 +62,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     val currentPoolPlayersPicksFiltered: LiveData<ArrayList<PickForDisplay>> = _currentPoolPlayersPicksFiltered
 
     private val _currentPoolName = MutableLiveData<String>()
-    val currentPoolName: LiveData<String> = _currentPool
+    val currentPoolName: LiveData<String> = _currentPoolName
 
     private val _currentPoolOwnerId = MutableLiveData<String>()
      val currentPoolOwnerId : LiveData<String> = _currentPoolOwnerId
@@ -92,8 +89,11 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     private val _retrievedWinningTeams = MutableLiveData<ArrayList<String>>()
     val retrievedWinningTeams: LiveData<ArrayList<String>> = _retrievedWinningTeams
 
-    private val _playerScoresCalculatedList = MutableLiveData<ArrayList<Pair<String, Pair<Int, Int>>>>()
-    val playerScoresCalculatedList: LiveData<ArrayList<Pair<String, Pair<Int, Int>>>> = _playerScoresCalculatedList
+    private val _playerScoresCalculatedList = MutableLiveData<ArrayList<Pair<Pair<String,String>, Pair<Int, Int>>>>()
+    val playerScoresCalculatedList: LiveData<ArrayList<Pair<Pair<String,String>, Pair<Int, Int>>>> = _playerScoresCalculatedList
+
+    private val _winnersForRecycler = MutableLiveData<ArrayList<WinnerItem>>()
+    val winnersForRecycler: LiveData<ArrayList<WinnerItem>> = _winnersForRecycler
 
     fun retrievePicksFromDatabase(){
         viewModelScope.launch {
@@ -900,11 +900,12 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 /**
                  * To get real value replace testlist with the real peoples list of picks
                  */
-                val playerScoresList = ArrayList<Pair<String, Pair<Int, Int>>>()
+                val playerScoresList = ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>()
                 Timber.i("----final score is $finalPoints, and the winning string = $scoreString")
 
 
                 for(item in testList){
+                    val playerId = item.playerId
                     val picksString = item.picks
                     val picksPoints = item.finalPoints.toInt()
                     val picksStringEdited = picksString.removePrefix("[").removeSuffix("]")
@@ -926,14 +927,44 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
                     val numberCorrect = count
                     val name = item.playerName
-                    val scoreItem = Pair(name, Pair(numberCorrect, picksPoints))
+                    val id = item.playerId
+                    val scoreItem = Pair(Pair(name,id), Pair(numberCorrect, picksPoints))
                     playerScoresList.add(scoreItem)
                 }
                 _playerScoresCalculatedList.value = playerScoresList
-                Timber.i("+++++ live data just updated with $playerScoresList, its value right after is ${_playerScoresCalculatedList.value}")
+
             }
         }
 
+    }
+
+    fun updateWinners(data: HashMap<String, Any>) {
+        val ids = ArrayList<String>()
+        val listToGetIdsFrom = _currentPoolPlayers.value!!
+        for(player in listToGetIdsFrom) {
+            val id = player.userId
+            ids.add(id)
+        }
+
+        repository.addWinnerToPools(user.uid, _currentPool.value!!, data, _currentPoolName.value!!, ids)
+    }
+
+    fun getWinners(poolId: String) {
+        repository.getUserPoolsBasePath(user.uid).document(poolId).collection("winners").get().addOnSuccessListener {
+            val listOfWinners = ArrayList<WinnerItem>()
+            val winners = it.documents
+            for(winner in winners){
+
+                val winnerToAdd = WinnerItem(
+                        winner.get("playerName").toString(),
+                        winner.get("week").toString()
+                )
+                listOfWinners.add(winnerToAdd)
+
+            }
+            _winnersForRecycler.value = listOfWinners
+
+        }
     }
 
 

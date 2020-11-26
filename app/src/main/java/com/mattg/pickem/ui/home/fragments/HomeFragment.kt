@@ -1,5 +1,6 @@
 package com.mattg.pickem.ui.home.fragments
 
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.*
@@ -16,6 +17,8 @@ import com.mattg.pickem.models.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import com.mattg.pickem.utils.SharedPrefHelper
 import com.mattg.pickem.utils.getDate
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -167,7 +170,6 @@ class HomeFragment : Fragment() {
 
 
     private fun handleDate(){
-        Timber.i("TESTINGTESTING-------->DATE ${getDate()}")
         checkDate(getDate())
     }
 
@@ -277,6 +279,10 @@ class HomeFragment : Fragment() {
         return count == list.size
     }
 
+    private fun resetFragmentToUpComingWeek(){
+
+    }
+
     private fun generatePickList(
         list: ArrayList<RadioGroup>,
         score: String,
@@ -319,15 +325,49 @@ class HomeFragment : Fragment() {
                 et_home_monday_points.visibility = View.VISIBLE
             }
         }
+        homeViewModel.dateToCheckWinner.observe(viewLifecycleOwner){
+            if (!it.isNullOrEmpty()){
+                Toast.makeText(requireContext(), "Date for checking winner is $it", Toast.LENGTH_SHORT ).show()
+            }
+        }
     }
 
     private fun emptyHomeScreenButtonClick() {
 
         homeViewModel.upcomingWeek.value?.let { it1 ->
            CoroutineScope(Dispatchers.IO).launch {
-               homeViewModel.getWeekData(2020, it1)
+               homeViewModel.getMatchupsFiltered(it1)
            }
         }
+    }
+
+    private fun getMatchupsForDifferentWeek(week: Int){
+        CoroutineScope(Dispatchers.IO).launch {
+            homeViewModel.getMatchupsFiltered(week)
+        }
+    }
+
+    private fun showWeekDialog(){
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_choose_week)
+        val editText = dialog.et_week
+        val searchButton = dialog.btn_search_week
+        val cancelButton = dialog.btn_cancel
+        searchButton.setOnClickListener {
+            if(editText.text.isNullOrEmpty()){
+                Toast.makeText(requireContext(), "Enter a week", Toast.LENGTH_SHORT).show()
+            }
+            if(editText.text.toString().toInt() > 17 || editText.text.toString().toInt() < 1){
+                Toast.makeText(requireContext(), "Enter a valid week", Toast.LENGTH_SHORT).show()
+            }
+            val week = editText.text.toString().trim().toInt()
+            getMatchupsForDifferentWeek(week)
+            dialog.dismiss()
+        }
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -338,16 +378,20 @@ class HomeFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         when (item.itemId) {
-            R.id.mnu_start_pool -> {
-//                navController.navigate(R.id.action_navigation_home_to_poolManagementFragment)
-                Toast.makeText(requireContext(), "TODO()", Toast.LENGTH_SHORT).show()
+            R.id.mnu_change_week -> {
+               showWeekDialog()
             }
             R.id.mnu_logout -> {
                 logout()
             }
-            R.id.mnu_view_saved_picks ->{
+            R.id.mnu_view_saved_picks -> {
                 val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null)
                 findNavController().navigate(R.id.action_navigation_home_to_currentList)
+            }
+            R.id.mnu_home_refresh -> {
+                handleDate()
+                homeViewModel.clearMatchups()
+                emptyHomeScreenButtonClick()
             }
         }
         return true

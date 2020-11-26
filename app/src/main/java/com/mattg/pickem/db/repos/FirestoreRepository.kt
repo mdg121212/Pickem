@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.mattg.pickem.models.firebase.PickForDisplay
 import com.mattg.pickem.models.firebase.Pool
+import timber.log.Timber
 
 
 class FirestoreRepository {
@@ -171,6 +172,50 @@ class FirestoreRepository {
 
     }
 
+    fun addWinnerToPools(userId: String, poolId: String, winnerData: HashMap<String, Any>, poolName: String, listOfPlayerIds: ArrayList<String>){
+        //check if the week already has a winner, if not add
+        val checkRef = getUserPoolsBasePath(userId).document(poolId).collection("winners").get()
+                checkRef.addOnSuccessListener {
+                    val winners = it.documents
+                    if(winners.size == 0 ){
+                        //go ahead and add
+                            Timber.i("<<<<<<<<<----Right before return @onsuccess size of docs is 0 should add")
+                    }
+                        for(winner in winners) {
+                            val week = winner.get("week").toString()
+                            val newWeek = winnerData["week"].toString()
+                            if(week == newWeek) {
+                                //don't add
+                                Timber.i("<<<<<<<<<----Right before return @onsuccess matching winner was found")
+                                return@addOnSuccessListener
+                            }
+                        }
+                    Timber.i("<<<<<<<<<----Shouldn't see this if @success is just above")
+                    for(playerId in listOfPlayerIds){
+                        val poolRef = getUserPoolsBasePath(playerId)
+                        poolRef.get().addOnSuccessListener {
+                            val docs = it.documents
+                            Timber.i("<<<<<<<<<<in successfull grab of $playerId s pools doc size is ${docs.size}")
+                            for(doc in docs){
+                                Timber.i("<<<<<<<<<<<<in document for loop, the get for name = ${doc.get("poolName").toString()} name passed is $poolName")
+                                if(doc.get("poolName").toString() == poolName){
+                                    Timber.i("<<<<<<<<<<<in documents found a match for the pool name")
+                                    val idToAddTo = doc.id
+                                    getUserPoolsBasePath(playerId).document(idToAddTo).collection("winners").add(winnerData)
+                                }
+                            }
+                        }
+                    }
+
+
+
+
+
+                }
+
+
+
+    }
 
     fun getUserBaseCollection(userId: String): DocumentReference {
         return mFirebaseDatabaseInstance.collection("users").document(userId)

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:visibility="visible"
+    android:layout_marginBottom="50dp"
     tools:context=".ui.dashboard.fragments.PoolDetailFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -17,12 +18,43 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/tv_pool_detail_title"
+            android:id="@+id/tv_pool_detail_week"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/owner_divider_pool_detail"
+            tools:text="current week" />
+
+        <TextView
+            android:id="@+id/tv_pool_detail_owner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_divider_pool_detail"
+            tools:text="Manager Name" />
+
+        <View
+            android:id="@+id/owner_divider_pool_detail"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/appOffWhite"
+            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_owner" />
+
+        <TextView
+            android:id="@+id/tv_pool_detail_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
             android:textAlignment="center"
             android:textSize="30sp"
             android:textStyle="bold"
@@ -31,27 +63,13 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Pool Title Text" />
 
-        <TextView
-            android:id="@+id/tv_pool_detail_week"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_title"
-            tools:text="current week" />
-
-        <TextView
-            android:id="@+id/tv_pool_detail_owner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_upcoming_week"
-            tools:text="Manager Name" />
+        <View
+            android:id="@+id/title_divider_pool_detail"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/appOffWhite"
+            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_title" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_pool_players"
@@ -64,23 +82,23 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btn_invite_players" />
+            app:layout_constraintTop_toBottomOf="@+id/btn_get_scores" />
 
         <Button
             android:id="@+id/btn_invite_players"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:text="@string/invite_players"
             android:visibility="visible"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_owner" />
+            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_week" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_invitations"
             android:layout_width="0dp"
-            android:layout_height="250dp"
+            android:layout_height="200dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:visibility="invisible"
@@ -92,11 +110,45 @@
             android:id="@+id/tv_pool_detail_upcoming_week"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="18sp"
+            android:layout_marginTop="32dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_week"
+            app:layout_constraintTop_toBottomOf="@+id/rv_invitations"
             tools:text="upcoming week text" />
+
+        <TextView
+            android:id="@+id/tv_winner_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/winner"
+            android:textSize="24sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_pool_detail_upcoming_week" />
+
+        <Button
+            android:id="@+id/btn_get_scores"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/see_who_won"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btn_invite_players" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_winners"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_winner_title" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

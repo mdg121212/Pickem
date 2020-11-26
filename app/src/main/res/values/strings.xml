@@ -59,6 +59,10 @@
     <string name="view_upcoming_picks">View upcoming picks</string>
     <string name="view_pool_picks">View Pool Picks</string>
     <string name="team_logo">team logo</string>
+    <string name="winner">Winners:</string>
+    <string name="change_week">Change Week</string>
+    <string name="see_who_won">See who won</string>
+    <string name="your_pool_text">Your Pool</string>
 
 
 </resources>

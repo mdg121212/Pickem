@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="@string/start_pool"
-        android:id="@+id/mnu_start_pool"/>
+    <item
+        android:id="@+id/mnu_home_refresh"
+        android:icon="@drawable/ic_baseline_refresh_24"
+        android:title="Refresh"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/mnu_change_week"
+        android:title="@string/change_week" />
     <item android:title="@string/logout"
         android:id="@+id/mnu_logout"/>
     <item android:title="@string/view_saved_picks"
