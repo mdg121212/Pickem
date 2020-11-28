@@ -13,12 +13,11 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
 import com.mattg.pickem.db.Pick
-import com.mattg.pickem.ui.dashboard.PoolViewModel
+import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
 import com.mattg.pickem.utils.PicksClickListener
 import com.mattg.pickem.ui.home.adapters.SavedPicksAdapter
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import kotlinx.android.synthetic.main.fragment_current_list.*
-import timber.log.Timber
 
 class CurrentList : Fragment() {
 
@@ -27,7 +26,7 @@ class CurrentList : Fragment() {
     private lateinit var poolViewModel: PoolViewModel
     val args : CurrentListArgs by navArgs()
     private var wasFromDetail : Boolean ?= null
-
+    private var week: String ?= null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,14 +39,32 @@ class CurrentList : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getPicks()  //call database
-        observeViewModel() //observe database / view model data
-         wasFromDetail = args.wasFromPoolDetail
 
+         week = args.week
+
+        if(week != "null"){
+            getPicks(true)
+
+        } else {
+            getPicks(false)
+
+        }//call database
+        wasFromDetail = args.wasFromPoolDetail
+        observeViewModel() //observe database / view model data
     }
 
-    private fun getPicks(){
-         homeViewModel.retrievePicksFromDatabase()
+    private fun getPicks(forSubmit: Boolean){
+        when(forSubmit){
+            true -> {
+
+                 homeViewModel.retrievePicksFromDatabaseForSubmit(week!!)
+            }
+            false -> {
+
+                homeViewModel.retrievePicksFromDatabase()
+            }
+        }
+
     }
 
     fun observeViewModel(){
@@ -107,18 +124,6 @@ class CurrentList : Fragment() {
                 Toast.makeText(requireContext(), "Error getting your picks, try again", Toast.LENGTH_SHORT).show()
             }
         }
-//        AlertDialog.Builder(requireContext()).setTitle("Picks options")
-//            .setPositiveButton("Choose picks"){_, _ ->
-//                showUsePicksDialog(picks)
-//            }
-//            .setNeutralButton("Delete picks"){_, _ ->
-//                deletePicks(id)
-//
-//            }
-//            .setNegativeButton("Cancel"){dialog, _ ->
-//                dialog.dismiss()
-//            }
-//            .show()
     }
 
     private fun deletePicks(id: Int) {

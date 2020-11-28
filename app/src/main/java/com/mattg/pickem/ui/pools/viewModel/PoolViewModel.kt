@@ -1,4 +1,4 @@
-package com.mattg.pickem.ui.dashboard
+package com.mattg.pickem.ui.pools.viewModel
 
 import android.app.Application
 import androidx.lifecycle.*
@@ -27,7 +27,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     val user = repository.currentUser!!
 
     private val _finalScoresFromWeek = MutableLiveData<Pair<ArrayList<Triple<String, String, String>>, String>>()
-    val finalScoresFromWeek : LiveData<Pair<ArrayList<Triple<String, String, String>>, String>> = _finalScoresFromWeek
+    val finalScoresFromWeek: LiveData<Pair<ArrayList<Triple<String, String, String>>, String>> = _finalScoresFromWeek
 
     private val _apiCallCurrentWeek = MutableLiveData<String>()
     val apiCallCurrentWeek: LiveData<String> = _apiCallCurrentWeek
@@ -36,7 +36,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     val apiCallLastCompletedWeek: LiveData<String> = _apiCallLastCompletedWeek
 
     private val _picksFromDatabase = MutableLiveData<List<Pick>>()
-    val picksFromDatabase : LiveData<List<Pick>> = _picksFromDatabase
+    val picksFromDatabase: LiveData<List<Pick>> = _picksFromDatabase
 
     private val _usersList = MutableLiveData<ArrayList<User>>()
     val usersList: LiveData<ArrayList<User>> = _usersList
@@ -65,13 +65,13 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     val currentPoolName: LiveData<String> = _currentPoolName
 
     private val _currentPoolOwnerId = MutableLiveData<String>()
-     val currentPoolOwnerId : LiveData<String> = _currentPoolOwnerId
+    val currentPoolOwnerId: LiveData<String> = _currentPoolOwnerId
 
     private val _currentPoolOwnerName = MutableLiveData<String>()
     val currentPoolOwnerName: LiveData<String> = _currentPoolOwnerName
 
     private val _currentPoolPlayers = MutableLiveData<ArrayList<User>>()
-    val currentPoolPlayers : LiveData<ArrayList<User>> = _currentPoolPlayers
+    val currentPoolPlayers: LiveData<ArrayList<User>> = _currentPoolPlayers
 
     private val _listForInviteRecycler = MutableLiveData<ArrayList<Invite>>()
     val listForInviteRecycler: LiveData<ArrayList<Invite>> = _listForInviteRecycler
@@ -84,40 +84,21 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _picksForScore = MutableLiveData<ArrayList<HashMap<String, String>>>()
 
-    private val _weekSort = MutableLiveData<String>()
-
     private val _retrievedWinningTeams = MutableLiveData<ArrayList<String>>()
     val retrievedWinningTeams: LiveData<ArrayList<String>> = _retrievedWinningTeams
 
-    private val _playerScoresCalculatedList = MutableLiveData<ArrayList<Pair<Pair<String,String>, Pair<Int, Int>>>>()
-    val playerScoresCalculatedList: LiveData<ArrayList<Pair<Pair<String,String>, Pair<Int, Int>>>> = _playerScoresCalculatedList
+    private val _playerScoresCalculatedList = MutableLiveData<ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>>()
+    val playerScoresCalculatedList: LiveData<ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>> = _playerScoresCalculatedList
 
     private val _winnersForRecycler = MutableLiveData<ArrayList<WinnerItem>>()
     val winnersForRecycler: LiveData<ArrayList<WinnerItem>> = _winnersForRecycler
 
-    fun retrievePicksFromDatabase(){
-        viewModelScope.launch {
-            _picksFromDatabase.value = roomRepository.getListOfPicks()
-        }
-    }
+    private val _needWinners = MutableLiveData<Boolean>()
+    val needWinners: LiveData<Boolean> = _needWinners
 
-    fun setPicks(picks: Pick){
+
+    fun setPicks(picks: Pick) {
         _currentSelectedPicks.value = picks
-    }
-
-    fun filterPicks(week: String){
-        val list = _currentPoolPlayersPicks.value
-        if (list != null) {
-            for(item in list){
-                if(item.week.toLowerCase() != "week $week")
-                    list.remove(item)
-            }
-            _currentPoolPlayersPicks.value = list
-        }
-    }
-
-    fun resetPoolPlayerPicksList(list: ArrayList<PickForDisplay>){
-        _currentPoolPlayersPicks.value = list
     }
 
     private val _areInvites = MutableLiveData<Boolean>().apply {
@@ -134,19 +115,9 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         _currentPoolOwnerName.value = poolOwnerName
     }
 
-    fun setCurrentList(list: ArrayList<User>){
-        _currentPoolPlayers.postValue(list)
-    }
-
-
     fun resetSelectedPicks() {
         _currentSelectedPicks.postValue(null)
     }
-
-    fun resetPicksList(){
-        _currentSelectedPicks.value = null
-    }
-
 
     private fun setAreInvites(input: Boolean) {
         _areInvites.value = input
@@ -182,18 +153,19 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         return returnPair.first
 
     }
-    fun filteredGetPicks(poolId: String, filter: String){
+
+    fun filteredGetPicks(poolId: String, filter: String) {
         Timber.i("----------filter is passed as $filter")
         val listOfPicks = ArrayList<PickForDisplay>()
-       val picksGotten =  repository.getUserBaseCollection(user.uid).collection("pools")
-                .document(poolId).collection("playerPicks").whereEqualTo("week", " "+filter).get()
+        val picksGotten = repository.getUserBaseCollection(user.uid).collection("pools")
+                .document(poolId).collection("playerPicks").whereEqualTo("week", " " + filter).get()
                 .addOnSuccessListener {
 
                     Timber.i("--------------inSuccessListener")
                     val picksDocuments = it.documents
                     if (picksDocuments != null) {
                         Timber.i("--------------inSuccessListener documents are not null size is ${picksDocuments.size}")
-                        for(doc in picksDocuments){
+                        for (doc in picksDocuments) {
                             Timber.i("------------------ " + doc.get("week").toString())
                             val picktoCopy = PickForDisplay(
                                     doc.get("finalPoints").toString(),
@@ -203,58 +175,57 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                     doc.get("week").toString().trim()
                             )
                             Timber.i("--------------values for pick -- ${picktoCopy.week} filter -- $filter")
-                                if(picktoCopy.week == filter.trim()) {
-                                    Timber.i("--------------filter matched adding pick ${picktoCopy.week} matched $filter")
-                                    //the pick doesn't match the filter, dont add it to the list
-                                    listOfPicks.add(picktoCopy)
-                                }
+                            if (picktoCopy.week == filter.trim()) {
+                                Timber.i("--------------filter matched adding pick ${picktoCopy.week} matched $filter")
+                                //the pick doesn't match the filter, dont add it to the list
+                                listOfPicks.add(picktoCopy)
+                            }
 
 
-                                Timber.i("------------------${listOfPicks.size}")
+                            Timber.i("------------------${listOfPicks.size}")
                         }
-                     //   Timber.i("----------------- $listOfPicks finshed with list of picks, its size is ${listOfPicks.size}}")
-                     //   _currentPoolPlayersPicks.value = listOfPicks
+                        //   Timber.i("----------------- $listOfPicks finshed with list of picks, its size is ${listOfPicks.size}}")
+                        //   _currentPoolPlayersPicks.value = listOfPicks
 
                     }
 
                 }
-            picksGotten.addOnCompleteListener {
-    _currentPoolPlayersPicks.value = listOfPicks
-    }
+        picksGotten.addOnCompleteListener {
+            _currentPoolPlayersPicks.value = listOfPicks
+        }
     }
 
-    fun getPoolPicks(poolId: String)  {
+    fun getPoolPicks(poolId: String) {
 
         val listOfPicks = ArrayList<PickForDisplay>()
         repository.getUserBaseCollection(user.uid).collection("pools")
                 .document(poolId).collection("playerPicks")
                 .addSnapshotListener { value, _ ->
-            val picksDocuments = value?.documents
-            if (picksDocuments != null) {
-                for(doc in picksDocuments){
+                    val picksDocuments = value?.documents
+                    if (picksDocuments != null) {
+                        for (doc in picksDocuments) {
 
-                    val picktoCopy = PickForDisplay(
-                            doc.get("finalPoints").toString(),
-                            doc.get("picks").toString(),
-                            doc.get("playerId").toString(),
-                            doc.get("playerName").toString(),
-                            doc.get("week").toString()
-                    )
-
-
-                       listOfPicks.add(picktoCopy)
+                            val picktoCopy = PickForDisplay(
+                                    doc.get("finalPoints").toString(),
+                                    doc.get("picks").toString(),
+                                    doc.get("playerId").toString(),
+                                    doc.get("playerName").toString(),
+                                    doc.get("week").toString()
+                            )
 
 
+                            listOfPicks.add(picktoCopy)
+
+
+                        }
+                        Timber.i("======= ${listOfPicks}}")
+                        listOfPicks.sortBy { pickForDisplay -> pickForDisplay.week }
+                        _currentPoolPlayersPicks.value = listOfPicks
+
+
+                    }
 
                 }
-                Timber.i("======= ${listOfPicks }}")
-                listOfPicks.sortBy { pickForDisplay -> pickForDisplay.week}
-                _currentPoolPlayersPicks.value = listOfPicks
-
-
-            }
-
-        }
 
     }
 
@@ -271,7 +242,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 val poolSize = pools.size
                 var count = 0
                 for (pool in pools) {
-                    if(count > poolSize){
+                    if (count > poolSize) {
                         break
                     }
 
@@ -304,17 +275,17 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun getPoolPlayers(poolId: String){
+    fun getPoolPlayers(poolId: String) {
         val returnList = ArrayList<User>()
-        val players= repository.getPoolPlayers(poolId)
+        val players = repository.getPoolPlayers(poolId)
 
         players.get().addOnSuccessListener { snapshot ->
-            if(snapshot == null){
+            if (snapshot == null) {
                 Timber.i("TESTINGPOOLS snapshot was null")
                 return@addOnSuccessListener
             }
 
-            for(item in snapshot){
+            for (item in snapshot) {
 
                 val id = item.get("playerId").toString()
                 val name = item.get("playerName").toString()
@@ -324,7 +295,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
                 val idForPicks = item.id
                 players.document(idForPicks).collection("playerPicks").get().addOnSuccessListener {
-                    for(document in it.documents){
+                    for (document in it.documents) {
                         // data["week"] = picks.week
                         //        data["picks"] = picks.picksGamesOnly
                         //        data["finalPoints"] = picks.finalPoints
@@ -353,7 +324,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         }
 
 
-
     }
 
     fun declineInvitation(inviteId: String) {
@@ -377,9 +347,9 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                             item["userId"].toString()
                     )
 
-                    if(foundUser.email == user.email){
+                    if (foundUser.email == user.email) {
                         return@addOnSuccessListener
-                    } else{
+                    } else {
                         returnList.add(foundUser)
                     }
                     Timber.i("Generated User: ${foundUser.name}, ${foundUser.email}")
@@ -412,65 +382,65 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         val listForRecycler = ArrayList<Invite>()
         val userReference = repository.getUserBaseCollection(user.uid)
         repository.listenForInvitations()
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Timber.i("Error updating")
-                    return@addSnapshotListener
-                }
-                areInvites = repository.checkForInvitations(snapshot!!)
-
-                when (areInvites) {
-                    true -> {
-                        val invites = userReference.collection("invitesReceived")
-                            .get()
-                        //iterate over them and delete later if declined, turn true and create pool on both ends if accepted
-                        invites.addOnSuccessListener { documents ->
-                            if (documents.isEmpty) {
-                                repository.resetUserInvitesField()
-                                repository.setInvitesToNone()
-                                return@addOnSuccessListener
-                            } else
-                                for (document in documents) {
-                                    val data = document.data
-                                    Timber.i("DATA = $data")
-                                    val email = data["userWhoSentInviteEmail"].toString()
-                                    val name = data["userWhoSentInviteName"].toString()
-                                    val poolId = data["poolId"].toString()
-                                    val poolName = data["poolName"].toString()
-                                    val senderId = data["userWhoSentInvite"].toString()
-                                    val inviteId = data["documentId"].toString()
-                                    val sentInvitationId = data["sentInviteId"].toString()
-
-                                    val inviteForList = Invite(
-                                        name,
-                                        user.displayName!!,
-                                        poolId,
-                                        poolName,
-                                        senderId,
-                                        email,
-                                        inviteId,
-                                        sentInvitationId
-                                    )
-                                    //add invite object to list for recycler
-                                    listForRecycler.add(inviteForList)
-                                }
-                            Timber.i("Amount of invitations found ${listForRecycler.size}")
-                            //shows a list of current invitations
-                            //  generateDialogOfInvites(listForRecycler)
-                            _listForInviteRecycler.postValue(listForRecycler)
-                            _areInvites.postValue(areInvites)
-                        }
-                    }
-                    false -> {
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Timber.i("Error updating")
                         return@addSnapshotListener
                     }
+                    areInvites = repository.checkForInvitations(snapshot!!)
+
+                    when (areInvites) {
+                        true -> {
+                            val invites = userReference.collection("invitesReceived")
+                                    .get()
+                            //iterate over them and delete later if declined, turn true and create pool on both ends if accepted
+                            invites.addOnSuccessListener { documents ->
+                                if (documents.isEmpty) {
+                                    repository.resetUserInvitesField()
+                                    repository.setInvitesToNone()
+                                    return@addOnSuccessListener
+                                } else
+                                    for (document in documents) {
+                                        val data = document.data
+                                        Timber.i("DATA = $data")
+                                        val email = data["userWhoSentInviteEmail"].toString()
+                                        val name = data["userWhoSentInviteName"].toString()
+                                        val poolId = data["poolId"].toString()
+                                        val poolName = data["poolName"].toString()
+                                        val senderId = data["userWhoSentInvite"].toString()
+                                        val inviteId = data["documentId"].toString()
+                                        val sentInvitationId = data["sentInviteId"].toString()
+
+                                        val inviteForList = Invite(
+                                                name,
+                                                user.displayName!!,
+                                                poolId,
+                                                poolName,
+                                                senderId,
+                                                email,
+                                                inviteId,
+                                                sentInvitationId
+                                        )
+                                        //add invite object to list for recycler
+                                        listForRecycler.add(inviteForList)
+                                    }
+                                Timber.i("Amount of invitations found ${listForRecycler.size}")
+                                //shows a list of current invitations
+                                //  generateDialogOfInvites(listForRecycler)
+                                _listForInviteRecycler.postValue(listForRecycler)
+                                _areInvites.postValue(areInvites)
+                            }
+                        }
+                        false -> {
+                            return@addSnapshotListener
+                        }
+                    }
                 }
-            }
         return areInvites
     }
 
-    fun getSpecificPool(poolId: String){
-        repository.getUserPoolsBasePath(user.uid).document(poolId).addSnapshotListener{ document, _ ->
+    fun getSpecificPool(poolId: String) {
+        repository.getUserPoolsBasePath(user.uid).document(poolId).addSnapshotListener { document, _ ->
 
             val name = document?.get("poolName")?.toString()
             val ownerName = document?.get("ownerName").toString()
@@ -494,37 +464,36 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
             //for the person sending the invite
             val senderRef =
                     repository.getUserBaseCollection(currentUser?.uid!!)
-            senderRef.update("numberOfInvitesSet", + 1)
+            senderRef.update("numberOfInvitesSet", +1)
 
-                                //for the recieving end
-                                val playerRef = repository.getUserBaseCollection(receivingId)
-                                playerRef.update("invites", true)
-                                playerRef.update("pendingInvites", +1)
-                                //create an invitation document on the receiving end
-                                val inviteReceivedHash = HashMap<String, Any>()
-                                inviteReceivedHash["userWhoSentInvite"] = currentUser.uid
-                                inviteReceivedHash["accepted"] = false
-                                inviteReceivedHash["userWhoSentInviteName"] = currentUser.displayName!!
-                                inviteReceivedHash["userWhoSentInviteEmail"] = currentUser.email!!
-                                inviteReceivedHash["poolName"] = _currentPoolName.value!!
-                                poolId?.let { it -> inviteReceivedHash["poolId"] = it }
-                                inviteReceivedHash["idOfSentInvite"] = sentInvitationId
-                                //update the recieving end
+            //for the recieving end
+            val playerRef = repository.getUserBaseCollection(receivingId)
+            playerRef.update("invites", true)
+            playerRef.update("pendingInvites", +1)
+            //create an invitation document on the receiving end
+            val inviteReceivedHash = HashMap<String, Any>()
+            inviteReceivedHash["userWhoSentInvite"] = currentUser.uid
+            inviteReceivedHash["accepted"] = false
+            inviteReceivedHash["userWhoSentInviteName"] = currentUser.displayName!!
+            inviteReceivedHash["userWhoSentInviteEmail"] = currentUser.email!!
+            inviteReceivedHash["poolName"] = _currentPoolName.value!!
+            poolId?.let { it -> inviteReceivedHash["poolId"] = it }
+            inviteReceivedHash["idOfSentInvite"] = sentInvitationId
+            //update the recieving end
 
-                                //store the value of the sent invitation, so that it can later be deleted
-                                playerRef.collection("invitesReceived").add(inviteReceivedHash)
-                                        .addOnSuccessListener {
-                                            //add a field to the new document that references its id
-                                            it?.id?.let { it1 ->
-                                                playerRef
-                                                        .collection("invitesReceived")
-                                                        .document(it1).update("documentId", it1)
-                                            }
-                                        }
+            //store the value of the sent invitation, so that it can later be deleted
+            playerRef.collection("invitesReceived").add(inviteReceivedHash)
+                    .addOnSuccessListener {
+                        //add a field to the new document that references its id
+                        it?.id?.let { it1 ->
+                            playerRef
+                                    .collection("invitesReceived")
+                                    .document(it1).update("documentId", it1)
+                        }
+                    }
         }
         return true
     }
-
 
 
     fun acceptInvitation(poolId: String, senderId: String, inviteId: String) {
@@ -536,7 +505,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         senderReference.collection("pools").document(poolId).collection("players").whereEqualTo("playerId", senderId).get()
                 .addOnSuccessListener { document ->
 
-                    for(doc in document){
+                    for (doc in document) {
                         val playerToAdd = HashMap<String, Any>()
                         playerToAdd["playerEmail"] = doc.get("playerEmail").toString()
                         playerToAdd["playerId"] = doc.get("playerId").toString()
@@ -552,12 +521,12 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                         //if no exception occurs, generate a pool object from the document
                         if (snapshot!!.exists()) {
                             val poolToCopy = Pool(
-                                snapshot.get("poolName").toString(),
-                                snapshot.get("ownerName").toString(),
-                                snapshot.get("ownerId").toString(),
-                                snapshot.get("documentId").toString(),
+                                    snapshot.get("poolName").toString(),
+                                    snapshot.get("ownerName").toString(),
+                                    snapshot.get("ownerId").toString(),
+                                    snapshot.get("documentId").toString(),
 
-                                )
+                                    )
 
                             Timber.i("<<<<<Pool to copy saving ownerName as ${snapshot.get("ownerName").toString()}")
 
@@ -572,9 +541,9 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
                             //add players to collection in both the new, and original pool
                             repository.createPoolsOnAccept(
-                                poolId, senderId, poolToCopy, playersToInclude,
+                                    poolId, senderId, poolToCopy, playersToInclude,
 
-                                )
+                                    )
                             //delete the invitations
                             repository.deleteInvitation(inviteId)
 
@@ -589,7 +558,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         setAreInvites(checkedInvitations)
         getUserPools()
     }
-
 
 
     fun addPicksForUserInPool(picks: Pick, userId: String) {
@@ -621,12 +589,12 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    private fun addPicksForEachPlayerFunction(item: String , data: HashMap<String, Any>){
+    private fun addPicksForEachPlayerFunction(item: String, data: HashMap<String, Any>) {
         repository.getUserPoolsBasePath(item).whereEqualTo("ownerId", _poolOwnerIdForAddingPicks.value).get()
                 .addOnSuccessListener {
                     for (doc in it.documents) {
                         val id = doc.id
-                        if(doc["ownerId"].toString() == _poolOwnerIdForAddingPicks.value) {
+                        if (doc["ownerId"].toString() == _poolOwnerIdForAddingPicks.value) {
                             repository.addPicksToPoolDocument(item, id, data)
                         }
                     }
@@ -634,26 +602,25 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-
-    fun deletePicksFromAllPools(poolId: String, pick: PickForDisplay, filter: String?){
+    fun deletePicksFromAllPools(poolId: String, pick: PickForDisplay, filter: String?) {
         repository.getUserPoolsBasePath(user.uid).document(poolId).get().addOnSuccessListener {
             val ownerId = it.get("ownerId").toString()
             //now have the pool owner id to remove picks from all pools
             val list = _currentPoolPlayers.value!!
-            for(item in list){
+            for (item in list) {
                 Timber.i("----------Inside current pool players list, player is ${item.name} id is ${item.userId}")
                 val id = item.userId
                 repository.getUserPoolsBasePath(id).whereEqualTo("ownerId", ownerId).get().addOnSuccessListener { pools ->
                     val documents = pools.documents
-                    for (doc in documents){
+                    for (doc in documents) {
                         val documentId = doc.id
-                       val deleting =  repository.getUserPoolsBasePath(id).document(documentId).collection("playerPicks")
+                        val deleting = repository.getUserPoolsBasePath(id).document(documentId).collection("playerPicks")
                                 .whereEqualTo("picks", pick.picks)
                                 .whereEqualTo("week", pick.week)
                                 .whereEqualTo("finalPoints", pick.finalPoints)
                                 .whereEqualTo("playerId", user.uid)
                                 .get().addOnSuccessListener {
-                                    for(document in it.documents){
+                                    for (document in it.documents) {
                                         val deleteId = document.id
                                         repository.getUserPoolsBasePath(id).document(documentId).collection("playerPicks")
                                                 .document(deleteId).delete()
@@ -677,10 +644,9 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-
-    fun callApiForLastCompletedWeek(){
+    fun callApiForLastCompletedWeek() {
         apiRepository.getApiService().getLastCompletedWeek(Constants.key).enqueue(object :
-            Callback<String>{
+                Callback<String> {
             override fun onResponse(call: Call<String>, response: Response<String>) {
                 val result = response.body()
                 _apiCallLastCompletedWeek.value = result
@@ -688,15 +654,15 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onFailure(call: Call<String>, t: Throwable) {
-               Timber.i("TESTINGAPI   call failed for last current week")
+                Timber.i("TESTINGAPI   call failed for last current week")
             }
         })
     }
 
-    fun callApiForCurrentWeek(){
+    fun callApiForCurrentWeek() {
         Timber.i("TESTINGAPI ---> callforcurrent week fired")
-        apiRepository.getApiService().getCurrentWeek(Constants.key).enqueue(object:
-            Callback<String>{
+        apiRepository.getApiService().getCurrentWeek(Constants.key).enqueue(object :
+                Callback<String> {
             override fun onResponse(call: Call<String>, response: Response<String>) {
                 val currentWeek = response.body()
                 _apiCallCurrentWeek.value = currentWeek
@@ -709,12 +675,12 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         })
     }
 
-    fun getScoresForWeek(week: Int){
-        apiRepository.getApiService().getScoresFromWeek("2020REG", week, Constants.key).enqueue( object:
-        Callback<IOWeekScoresResponse>{
+    fun getScoresForWeek(week: Int) {
+        apiRepository.getApiService().getScoresFromWeek("2020REG", week, Constants.key).enqueue(object :
+                Callback<IOWeekScoresResponse> {
             override fun onResponse(
-                call: Call<IOWeekScoresResponse>,
-                response: Response<IOWeekScoresResponse>
+                    call: Call<IOWeekScoresResponse>,
+                    response: Response<IOWeekScoresResponse>
             ) {
                 val result = response.body()
 
@@ -746,11 +712,11 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                     Timber.i("WINNING TEAM IS $homeTeam")
                                     if (homeTeam != null) {
                                         winningTeams.add(
-                                            Triple(
-                                                homeTeam.toString(),
-                                                item.date.toString(),
-                                                    total
-                                            )
+                                                Triple(
+                                                        homeTeam.toString(),
+                                                        item.date.toString(),
+                                                        total
+                                                )
                                         )
                                         winningTeamsStringsOnly.add(homeTeam.toString())
                                     }
@@ -760,11 +726,11 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                     Timber.i("WINNING TEAM IS $awayTeam")
                                     if (awayTeam != null) {
                                         winningTeams.add(
-                                            Triple(
-                                                awayTeam.toString(),
-                                                item.date.toString(),
-                                                total
-                                            )
+                                                Triple(
+                                                        awayTeam.toString(),
+                                                        item.date.toString(),
+                                                        total
+                                                )
                                         )
                                         winningTeamsStringsOnly.add(awayTeam.toString())
                                     }
@@ -800,10 +766,38 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         })
     }
 
+    fun checkIfNeedWinner(week: String){
+        val weekInt = week.filter { it.isDigit() }.trim().toInt()
+        val picksRef = repository.getUserBaseCollection(user.uid).collection("pools")
+                .document(_currentPool.value!!).collection("winners").get()
+        picksRef.addOnSuccessListener {
+            var winners: Int = 0
+            if(it.documents.isEmpty()){
+                Timber.i("[[[[[[[[[[documents checking winner were empty, need to try for a winner should return, no more [[[ logs")
+                _needWinners.value = true
+                return@addOnSuccessListener
+            }
+            for(doc in it.documents){
+                if(doc["week"].toString().trim() == week.trim()){
+                    winners++
+                    Timber.i("[[[[[[[[[[[[FOUND MATCHING WINNER ADDING TO WINNERS INT it is now: $winners")
+                }
+            }
+            Timber.i("[[[[[[[winners value ultimately is $winners, if zero that means no winners were found and it will continue to get one")
+            if(winners > 0){
+                //need to get winner
+                _needWinners.value = false
+            } else {
+                _needWinners.value = true
+                //at this point no winners , need to call decide winner
+            }
+        }
+    }
+
     fun decideWinner(weekFilter: String, poolId: String, finalScore: Int) {
         Timber.i("-------decide winner called")
-       // getScoresForWeek(11)   //testing a variable here need to pass the Week 11 eleven part
-      //  retrievePicksForScore(poolId)
+        // getScoresForWeek(11)   //testing a variable here need to pass the Week 11 eleven part
+        //  retrievePicksForScore(poolId)
         val retrievedPicks = ArrayList<HashMap<String, String>>()
         val picksRef = repository.getUserBaseCollection(user.uid).collection("pools")
                 .document(poolId).collection("playerPicks").get()
@@ -811,17 +805,19 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         picksRef.addOnSuccessListener {
             Timber.i("-------In on success listner for retrieving picks to see who won, doc count is :  ${it.documents.size}")
             val picks = it.documents
-            for(pick in picks){
+            for (pick in picks) {
                 val pickString = pick.getString("picks")
                 val points = pick.getString("finalPoints")
                 val playerId = pick.getString("playerId")
                 val week = pick.getString("week")
+                val playerName = pick.getString("playerName")
 
                 val retrievedPick = HashMap<String, String>()
                 retrievedPick["picks"] = pickString!!
                 retrievedPick["points"] = points!!
                 retrievedPick["playerId"] = playerId!!
                 retrievedPick["week"] = week!!
+                retrievedPick["playerName"] = playerName!!
                 Timber.i("--------- retrieved pick is week:${retrievedPick["week"].toString()} points: ${retrievedPick["points"].toString()}  picks: ${retrievedPick["picks"].toString()} ")
                 retrievedPicks.add(retrievedPick)
             }
@@ -836,19 +832,20 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
             Timber.i("-----------in on complete listener picksForScore value is ${_picksForScore.value}")
 
-            if(_picksForScore.value != null){
+            if (_picksForScore.value != null) {
                 val list = _picksForScore.value
                 val finalList = ArrayList<HashMap<String, String>>()
                 if (list != null) {
-                    for(item in list){
-                        if(item["week"].toString().trim() == weekFilter.trim()){
+                    for (item in list) {
+                        if (item["week"].toString().trim() == weekFilter.trim()) {
                             Timber.i("-----------made it to where a pick matches the week")
                             finalList.add(item)
                         }
                     }
                 }
 
-                Timber.i("----------Final list value/size is ${finalList.size}")
+                Timber.i("----------Final list value/size is ${finalList.size} if this is zero, update something to show" +
+                        "that no items for the week were found")
                 val scores = _finalScoresFromWeek.value
                 val finalPoints = finalScore
                 val scoreString = winningScoreToCheck?.first
@@ -904,32 +901,50 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 Timber.i("----final score is $finalPoints, and the winning string = $scoreString")
 
 
-                for(item in testList){
-                    val playerId = item.playerId
-                    val picksString = item.picks
-                    val picksPoints = item.finalPoints.toInt()
-                    val picksStringEdited = picksString.removePrefix("[").removeSuffix("]")
-                    val onlyChars = picksStringEdited.replace(",", "")
-                    Timber.i("-----only chars  = $onlyChars")
-                    val teamArray = onlyChars.split(" ") as ArrayList<String>
-                    Timber.i("-------team array is $teamArray")
+             //  for (item in testList) { val retrievedPick = HashMap<String, String>()
+                //                retrievedPick["picks"] = pickString!!
+                //                retrievedPick["points"] = points!!
+                //                retrievedPick["playerId"] = playerId!!
+                //                retrievedPick["week"] = week!!
+                //                Timber.i("--------- retrieved pick is week:${retrievedPick["week"].toString()} points: ${retrievedPick["points"].toString()}  picks: ${retrievedPick["picks"].toString()} ")
+                //                retrievedPicks.add(retrievedPick)
+                if (leaguePicksList != null) {
+                    for (item in leaguePicksList) {
+//                        val playerId = item.playerId
+//                        val picksString = item.picks
+//                        val picksPoints = item.finalPoints.toInt()
+//                        val picksStringEdited = picksString.removePrefix("[").removeSuffix("]")
+//                        val onlyChars = picksStringEdited.replace(",", "")
+//                        Timber.i("-----only chars  = $onlyChars")
+//                        val teamArray = onlyChars.split(" ") as ArrayList<String>
+//                        Timber.i("-------team array is $teamArray")
+                        val playerId = item.get("playerId").toString().trim()
+                        val playerName = item.get("playerName").toString().trim()
+                        val picksString = item.get("picks").toString().trim()
+                        val picksPoints = item.get("points").toString().trim().toInt()
+                        val picksStringEdited = picksString.removePrefix("[").removeSuffix("]")
+                        val onlyChars = picksStringEdited.replace(",", "")
+                        Timber.i("-----only chars  = $onlyChars")
+                        val teamArray = onlyChars.split(" ") as ArrayList<String>
+                        Timber.i("-------team array is $teamArray")
 
-                    //NOW THE TEAMS ARRAYS ARE EQUIVALENT, LOOP THROUGH THE WINNING TEAMS ARRAY AND COMPARE
-                    //MATCHES WITH A COUNTER
-                    var count = 0
-                   for(item2 in teamArray){
-                       if(scrambledAlternateList!!.contains(item2)){
-                           count++
-                       }
-                   }
+                        //NOW THE TEAMS ARRAYS ARE EQUIVALENT, LOOP THROUGH THE WINNING TEAMS ARRAY AND COMPARE
+                        //MATCHES WITH A COUNTER
+                        var count = 0
+                        for (item2 in teamArray) {
+                            if (scrambledAlternateList!!.contains(item2)) {
+                                count++
+                            }
+                        }
 
-                    Timber.i("+++++++count should be number correct: ${item.playerId} 's count is $count")
+                        Timber.i("+++++++count should be number correct: ${playerId} 's count is $count")
 
-                    val numberCorrect = count
-                    val name = item.playerName
-                    val id = item.playerId
-                    val scoreItem = Pair(Pair(name,id), Pair(numberCorrect, picksPoints))
-                    playerScoresList.add(scoreItem)
+                        val numberCorrect = count
+                        val name = item.get("playerName").toString().trim()
+                        val id = item.get("playerId").toString().trim()
+                        val scoreItem = Pair(Pair(name, id), Pair(numberCorrect, picksPoints))
+                        playerScoresList.add(scoreItem)
+                    }
                 }
                 _playerScoresCalculatedList.value = playerScoresList
 
@@ -941,7 +956,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     fun updateWinners(data: HashMap<String, Any>) {
         val ids = ArrayList<String>()
         val listToGetIdsFrom = _currentPoolPlayers.value!!
-        for(player in listToGetIdsFrom) {
+        for (player in listToGetIdsFrom) {
             val id = player.userId
             ids.add(id)
         }
@@ -953,7 +968,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         repository.getUserPoolsBasePath(user.uid).document(poolId).collection("winners").get().addOnSuccessListener {
             val listOfWinners = ArrayList<WinnerItem>()
             val winners = it.documents
-            for(winner in winners){
+            for (winner in winners) {
 
                 val winnerToAdd = WinnerItem(
                         winner.get("playerName").toString(),
@@ -966,8 +981,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
         }
     }
-
-
 
 
 }

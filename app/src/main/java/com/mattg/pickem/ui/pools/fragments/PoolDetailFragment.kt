@@ -1,4 +1,4 @@
-package com.mattg.pickem.ui.dashboard.fragments
+package com.mattg.pickem.ui.pools.fragments
 
 import android.app.Dialog
 import android.os.Bundle
@@ -12,9 +12,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
 import com.mattg.pickem.models.firebase.User
 import com.mattg.pickem.models.firebase.WinnerItem
-import com.mattg.pickem.ui.dashboard.PoolViewModel
-import com.mattg.pickem.ui.dashboard.adapters.PoolPlayerListAdapter
-import com.mattg.pickem.ui.dashboard.adapters.WinnersAdapter
+import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
+import com.mattg.pickem.ui.pools.adapters.PoolPlayerListAdapter
+import com.mattg.pickem.ui.pools.adapters.WinnersAdapter
 import com.mattg.pickem.ui.home.adapters.InviteAdapter
 import com.mattg.pickem.utils.*
 import kotlinx.android.synthetic.main.dialog_choose_week.*
@@ -29,7 +29,8 @@ class PoolDetailFragment : Fragment() {
     private lateinit var clickListener: PoolPlayerListClickListener
     private lateinit var picksClickListener: PicksClickListener
     private lateinit var inviteClickListener: RecyclerClickListener
-
+    private lateinit var currentWeek: String
+    private lateinit var lastWeek: String
     private var currentId: String? = null
     val args: PoolDetailFragmentArgs by navArgs()
     private var werePicksPicked = false
@@ -51,8 +52,8 @@ class PoolDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext())
-        val lastWeek = SharedPrefHelper.getLastOrCurrentWeekFromPrefs(requireContext())
+         currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext()).toString()
+         lastWeek = SharedPrefHelper.getLastOrCurrentWeekFromPrefs(requireContext()).toString()
 
 
         getPoolDetails()
@@ -66,17 +67,17 @@ class PoolDetailFragment : Fragment() {
         }
         werePicksPicked = false
 
-        if (poolViewModel.currentPoolOwnerId.value == poolViewModel.user.uid) {
-            Timber.i("NEWSCREEN this person is the pool owner can do more logic for managers only here")
-            btn_get_scores.apply {
-                visibility = View.VISIBLE
-                setOnClickListener {
-                    if (lastWeek != null) {
-                        getScoresDialog(lastWeek)
-                    }
-                }
-            }
-        }
+//        if (poolViewModel.currentPoolOwnerId.value == poolViewModel.user.uid) {
+//            Timber.i("NEWSCREEN this person is the pool owner can do more logic for managers only here")
+//            btn_get_scores.apply {
+//                visibility = View.VISIBLE
+//                setOnClickListener {
+//                    if (lastWeek != null) {
+//                        getScoresDialog(lastWeek)
+//                    }
+//                }
+//            }
+//        }
 
         btn_invite_players.setOnClickListener {
 
@@ -90,6 +91,10 @@ class PoolDetailFragment : Fragment() {
 
     }
     private fun getScoresDialog(lastWeek: String){
+        /**
+         * NEED TO ATTACH THIS TO THE MONDAY NIGHT DEADLINE FOR THE GAME OVER FOR THE CURRENT WEEK
+         * POSSIBLY PASS THIS TIME/DATE FROM HOME VIEW MODEL TO HERE AND CHECK
+         */
         val dialog = Dialog(requireContext())
         dialog.setContentView(R.layout.dialog_choose_week)
         val editText = dialog.et_week
@@ -101,7 +106,8 @@ class PoolDetailFragment : Fragment() {
         }
         submitButton.setOnClickListener {
         if(editText.text.toString().toInt() > 0){
-            getScores(11, lastWeek, editText.text.toString().toInt())
+            val weekInt = lastWeek.filter { it.isDigit() }.trim().toInt()
+            getScores(weekInt, lastWeek, editText.text.toString().toInt())
             dialog.dismiss()
         } else {
             Toast.makeText(requireContext(), "Please enter a valid score", Toast.LENGTH_SHORT).show()
@@ -132,12 +138,22 @@ class PoolDetailFragment : Fragment() {
         val highScore = list.first().second.first
         Timber.i("++++++++highScore is $highScore")//this gets the number correct
         val highScoreTiesList = ArrayList<Pair<Pair<String,String>, Pair<Int, Int>>>()
+        val data = HashMap<String, Any>()
         for(item in inputList){
             if (item.second.first == highScore){
                 highScoreTiesList.add(item)
             }
         }
         Timber.i("+++++++highScoresTiesList = $highScoreTiesList")
+        if(highScoreTiesList.size == 1){
+            val item = list.first()
+            Toast.makeText(requireContext(), "The winner is ${item.first.first}", Toast.LENGTH_SHORT).show()
+            data["playerId"] = item.first.second
+            data["playerName"] = item.first.first
+            data["week"] = lastWeek
+            poolViewModel.updateWinners(data)
+            return
+        }
         if(highScoreTiesList.size > 1){
             if(highScoreTiesList.size == 2){
                 val firstPlayer = highScoreTiesList[0]
@@ -147,20 +163,40 @@ class PoolDetailFragment : Fragment() {
                 val winner =
                         getWinnerByFinalPoints(firstPlayer.first.first, firstPlayer.second.second,
                                 secondPlayer.first.first, secondPlayer.second.second, finalScore)
+                //if we get a tie lets see what the names show as
+                if(winner == "TIE") {
+                    val nameOne = firstPlayer.first.first
+                    val nameTwo = secondPlayer.first.first
+                    val tiedWinner = "$nameOne and $nameTwo tied!"
+
+                    val data = HashMap<String, Any>()
+                    data["playerId"] = "TIE"
+                    data["playerName"] = tiedWinner
+                    data["week"] = lastWeek
+                    Toast.makeText(requireContext(), "The winner is $tiedWinner", Toast.LENGTH_SHORT).show()
+                    poolViewModel.updateWinners(data)
+                    return
+                }
+
                 Toast.makeText(requireContext(), "The winner is $winner", Toast.LENGTH_SHORT).show()
+
+
                 for (item in highScoreTiesList){
                     if (item.first.first.trim() == winner.trim()){
-                        val data = HashMap<String, Any>()
+
                         data["playerId"] = item.first.second
                         data["playerName"] = item.first.first
                         data["week"] = lastWeek
 
                         poolViewModel.updateWinners(data)
+                        return
                     }
                 }
 
             }
-        } else
+        }
+        //here the list is 1 and we have a clear winner
+        else
         Toast.makeText(requireContext(), "The winner is ${list.first().first}", Toast.LENGTH_SHORT).show()
     }
 
@@ -235,7 +271,7 @@ class PoolDetailFragment : Fragment() {
         if (currentId != null) {
             poolViewModel.getPoolPlayers(currentId!!)
             poolViewModel.getSpecificPool(currentId!!)
-            poolViewModel.getPoolPicks(currentId!! )
+            poolViewModel.getPoolPicks(currentId!!)
             poolViewModel.getWinners(currentId!!)
 
             //for setting the pool owner display
@@ -243,7 +279,7 @@ class PoolDetailFragment : Fragment() {
             if(poolOwnerName == poolViewModel.user.displayName){
                 tv_pool_detail_owner.text = getString(R.string.your_pool_text)
             } else {
-                "Pool Owner: $poolOwnerName".also { tv_pool_detail_owner.text = it }
+                "Owner: $poolOwnerName".also { tv_pool_detail_owner.text = it }
             }
 
         }
@@ -266,11 +302,38 @@ class PoolDetailFragment : Fragment() {
 
         poolViewModel.winnersForRecycler.observe(viewLifecycleOwner){ winnerList ->
             populateWinnersRecycler(winnerList)
-
         }
-//        poolViewModel.apiCallCurrentWeek.observe(viewLifecycleOwner){currentWeek ->
-//            tv_pool_detail_week.text = "CURRENT WEEK: $currentWeek"
-//        }
+        poolViewModel.checkIfNeedWinner(lastWeek)
+        poolViewModel.needWinners.observe(viewLifecycleOwner){ needWinners ->
+            when(needWinners){
+                true -> {
+                    if (poolViewModel.currentPoolOwnerId.value == poolViewModel.user.uid) {
+                        Timber.i("NEWSCREEN this person is the pool owner can do more logic for managers only here")
+                        btn_get_scores.apply {
+                            visibility = View.VISIBLE
+                            setOnClickListener {
+                                getScoresDialog(lastWeek)
+                            }
+                        }
+                    }
+                }
+                    false -> {
+
+                    }
+            }
+        }
+        /**
+         * NEED TO ROUGHLY IN THIS ORDER: call winners list, check if it has a winner for the last week(
+         * will need to check weeks in some way with date to determine when this should show a value), like,
+         * call this function, wait for return to be checked, then update live data to observe below this function
+         * that will trigger the button to be shown, which will trigger the dialog for inputting score,
+         * which will trigger a winner to be posted, which will update the initial functions purpose, determining if a winner
+         * needs to be chosen, and reset it to no it doesnt, which will update the live data, which will hide the button untill
+         * the next time a winner is needed.  NEED TO ACCOUNT FOR, there not being any picks for the week in question, like
+         * the pool was started week 10, no picks for anything before week 10. I think just the last week should suffice here,
+         * will always only check after one  week has passed.  so is last week, if so is winner for matching last week, if so dont show
+         * else show input
+         */
     }
 
     private fun populateWinnersRecycler(winnerList: ArrayList<WinnerItem>?) {
@@ -332,9 +395,9 @@ class PoolDetailFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.mnu_submit_picks -> {
-                // showSubmitPicksDialog()
+
                 val action = PoolDetailFragmentDirections
-                        .actionPoolDetailFragmentToCurrentList(true, tv_pool_detail_title.text.toString())
+                        .actionPoolDetailFragmentToCurrentList(true, tv_pool_detail_title.text.toString(), currentWeek)
                 findNavController().navigate(action)
             }
             R.id.mnu_view_all_picks -> {

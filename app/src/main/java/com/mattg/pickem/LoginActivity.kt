@@ -48,7 +48,8 @@ class LoginActivity : AppCompatActivity() {
 
         //app launch intent
         val intent = Intent(this, MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK )
         if (auth.currentUser != null) {
             val userToSave = getInstance().currentUser
             val userName = userToSave?.displayName
@@ -80,6 +81,7 @@ class LoginActivity : AppCompatActivity() {
                                     .addOnCompleteListener {
                                         if(it.isSuccessful){
                                             startActivity(intent)
+
 
                                         } else {
                                             Toast.makeText(this, "Something went wrong...", Toast.LENGTH_SHORT).show()

@@ -35,7 +35,7 @@
 
     <fragment
         android:id="@+id/navigation_pools"
-        android:name="com.mattg.pickem.ui.dashboard.fragments.ViewPoolsFragment"
+        android:name="com.mattg.pickem.ui.pools.fragments.ViewPoolsFragment"
         android:label="Pool Management"
         tools:layout="@layout/fragment_dashboard">
         <action
@@ -54,7 +54,11 @@
             app:popExitAnim="@anim/slide_up" />
         <action
             android:id="@+id/action_navigation_dashboard_to_poolDetailFragment"
-            app:destination="@id/poolDetailFragment" />
+            app:destination="@id/poolDetailFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
     </fragment>
 
     <fragment
@@ -120,6 +124,11 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="null"/>
+        <argument
+            android:name="week"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="null" />
     </fragment>
     <fragment
         android:id="@+id/viewPicksFragment"
@@ -136,7 +145,7 @@
     </fragment>
     <fragment
         android:id="@+id/poolDetailFragment"
-        android:name="com.mattg.pickem.ui.dashboard.fragments.PoolDetailFragment"
+        android:name="com.mattg.pickem.ui.pools.fragments.PoolDetailFragment"
         android:label="Pool Details"
         tools:layout="@layout/fragment_pool_detail">
         <action
@@ -158,7 +167,11 @@
             android:defaultValue="null" />
         <action
             android:id="@+id/action_poolDetailFragment_to_poolPlayersPicksFragment"
-            app:destination="@id/poolPlayersPicksFragment" />
+            app:destination="@id/poolPlayersPicksFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
         <argument
             android:name="werePicksJustSelected"
             app:argType="boolean"
@@ -166,12 +179,16 @@
     </fragment>
     <fragment
         android:id="@+id/poolPlayersPicksFragment"
-        android:name="com.mattg.pickem.ui.dashboard.fragments.PoolPlayersPicksFragment"
+        android:name="com.mattg.pickem.ui.pools.fragments.PoolPlayersPicksFragment"
         android:label="Pool Picks"
         tools:layout="@layout/fragment_pool_players_picks" >
         <action
             android:id="@+id/action_poolPlayersPicksFragment_to_poolDetailFragment"
-            app:destination="@id/poolDetailFragment" />
+            app:destination="@id/poolDetailFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
         <argument
             android:name="action"
             app:argType="integer"

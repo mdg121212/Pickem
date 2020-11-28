@@ -9,9 +9,11 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.mattg.pickem.R
+import com.mattg.pickem.models.general.Week
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 
 fun ImageView.setTeamImage(imageString: String?, progressDrawable: CircularProgressDrawable) {
@@ -122,6 +124,27 @@ fun getDate(): Date {
     return dateToCheck
 
 }
+
+private val weekArray: ArrayList<Any>
+   = arrayListOf(
+            Week(1,Date(2020, 9, 10, 12, 0)),
+            Week(2, Date(2020, 9, 17, 12, 0)),
+            Week(3, Date(2020, 9, 24, 12,0)),
+            Week(4, Date(2020, 10, 1, 12, 0)),
+            Week(5, Date(2020, 10, 8, 12, 0)),
+            Week(6, Date(2020, 10, 18, 12, 0)),
+            Week(7, Date(2020, 10, 22, 12, 0)),
+            Week(8, Date(2020, 10, 29, 12, 0)),
+            Week(9, Date(2020, 11, 5, 12, 0)),
+            Week(10, Date(2020, 11, 12, 12, 0)),
+            Week(11, Date(2020, 11, 19, 12, 0)),
+            Week(12, Date(2020, 11, 26, 12, 0)),
+            Week(13, Date(2020, 12, 3, 12, 0)),
+            Week(14, Date(2020, 12, 10, 12, 0)),
+            Week(15, Date(2020, 12, 17, 12, 0)),
+            Week(16, Date(2020, 12, 25, 12, 0)),
+            Week(17, Date(2021, 1, 3, 12, 0)),
+    )
 
 
 

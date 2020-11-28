@@ -1,15 +1,15 @@
-package com.mattg.pickem.models
+package com.mattg.pickem.models.iomodels
 
 
 import com.google.gson.annotations.SerializedName
 
 data class GamesResponseItem(
-    @SerializedName("gameTime")
+        @SerializedName("gameTime")
     var gameTime: String?,
-    @SerializedName("homeTeam")
+        @SerializedName("homeTeam")
     var homeTeam: HomeTeam?,
-    @SerializedName("stadiumInfo")
+        @SerializedName("stadiumInfo")
     var stadiumInfo: StadiumInfo?,
-    @SerializedName("visitorTeam")
+        @SerializedName("visitorTeam")
     var visitorTeam: VisitorTeam?
 )

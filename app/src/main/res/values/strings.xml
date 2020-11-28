@@ -37,7 +37,6 @@
     <string name="send_invitations_to_your_pool">Send invitations to your pool!</string>
     <string name="user_email">User Email:</string>
     <string name="search">Search</string>
-    <string name="todo">TODO</string>
     <string name="view_picks">View Picks</string>
     <string name="picks_submitted">Picks Submitted?</string>
     <string name="check_to_show_if_picks_are_submitted">Check to show if picks are submitted</string>
@@ -59,10 +58,15 @@
     <string name="view_upcoming_picks">View upcoming picks</string>
     <string name="view_pool_picks">View Pool Picks</string>
     <string name="team_logo">team logo</string>
-    <string name="winner">Winners:</string>
+    <string name="winner">WINNERS</string>
     <string name="change_week">Change Week</string>
     <string name="see_who_won">See who won</string>
     <string name="your_pool_text">Your Pool</string>
+    <string name="attribution"><a href="https://www.freepik.com/vectors/light">Light vector created by vectorpouch - www.freepik.com</a></string>
+    <string name="your_pools">Your Pools</string>
+    <string name="todo">TODO</string>
+    <string name="football_image_to_show_loading">Football image to show loading</string>
+    <string name="football_header_graphic">Football header graphic</string>
 
 
 </resources>

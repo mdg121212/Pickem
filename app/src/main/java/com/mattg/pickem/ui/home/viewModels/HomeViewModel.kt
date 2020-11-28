@@ -12,8 +12,8 @@ import com.mattg.pickem.db.Pick
 import com.mattg.pickem.db.WeekMatchUp
 import com.mattg.pickem.db.repos.ApiCallRepository
 import com.mattg.pickem.db.repos.RoomRepo
-import com.mattg.pickem.models.Game
-import com.mattg.pickem.models.Week
+import com.mattg.pickem.models.general.Game
+import com.mattg.pickem.models.general.Week
 import com.mattg.pickem.models.iomodels.IOScheduleReponse
 import com.mattg.pickem.models.iomodels.IOScoresResponse
 import com.mattg.pickem.utils.Constants
@@ -33,24 +33,26 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ApiCallRepository(application)
     private val roomRepository = RoomRepo(application)
 
+
+
     private val weeksArray = arrayListOf(
-        Week(1, Date(2020, 9, 10)),
-        Week(2, Date(2020, 9, 17)),
-        Week(3, Date(2020, 9, 24)),
-        Week(4, Date(2020, 10, 1)),
-        Week(5, Date(2020, 10, 8)),
-        Week(6, Date(2020, 10, 18)),
-        Week(7, Date(2020, 10, 22)),
-        Week(8, Date(2020, 10, 29)),
-        Week(9, Date(2020, 11, 5)),
-        Week(10, Date(2020, 11, 12)),
-        Week(11, Date(2020, 11, 19)),
-        Week(12, Date(2020, 11, 26)),
-        Week(13, Date(2020, 12, 3)),
-        Week(14, Date(2020, 12, 10)),
-        Week(15, Date(2020, 12, 17)),
-        Week(16, Date(2020, 12, 25)),
-        Week(17, Date(2021, 1, 3)),
+        Week(1, Date(2020, 9, 10, 12, 0)),
+        Week(2, Date(2020, 9, 17, 12, 0)),
+        Week(3, Date(2020, 9, 24, 12,0)),
+        Week(4, Date(2020, 10, 1, 12, 0)),
+        Week(5, Date(2020, 10, 8, 12, 0)),
+        Week(6, Date(2020, 10, 18, 12, 0)),
+        Week(7, Date(2020, 10, 22, 12, 0)),
+        Week(8, Date(2020, 10, 29, 12, 0)),
+        Week(9, Date(2020, 11, 5, 12, 0)),
+        Week(10, Date(2020, 11, 12, 12, 0)),
+        Week(11, Date(2020, 11, 19, 12, 0)),
+        Week(12, Date(2020, 11, 26, 12, 0)),
+        Week(13, Date(2020, 12, 3, 12, 0)),
+        Week(14, Date(2020, 12, 10, 12, 0)),
+        Week(15, Date(2020, 12, 17, 12, 0)),
+        Week(16, Date(2020, 12, 25, 12, 0)),
+        Week(17, Date(2021, 1, 3, 12, 0)),
     )
     private val _text = MutableLiveData<String>().apply {
         value = "Weekly Pick All"
@@ -66,6 +68,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val currentUserNameId: LiveData<HashMap<String, String>> = _currentUserNameId
 
     private val _currentDate = MutableLiveData<Date>()
+    private val _currentYear = MutableLiveData<Int>()
 
     private val _scheduleResult = MutableLiveData<IOScheduleReponse>()
     val scheduleResult: LiveData<IOScheduleReponse> = _scheduleResult
@@ -98,7 +101,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun savePickToDatabase(pick: Pick) {
         viewModelScope.launch {
             roomRepository.savePicksToDatabase(pick)
-           // val picks = roomRepository.getListOfPicks()
         }
     }
 
@@ -121,17 +123,26 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 }
 
     fun getMatchupsFiltered(week: Int){
-        callApiForMatchups(2020, week, true)
+        callApiForMatchups(_currentYear.value!!, week, true)
     }
 
     fun retrievePicksFromDatabase(){
         viewModelScope.launch {
             _picksFromDatabase.value = roomRepository.getListOfPicks()
+            Timber.i("[[[[[[in viewModel value of live data is ${_picksFromDatabase.value}")
+        }
+    }
+
+    fun retrievePicksFromDatabaseForSubmit(week: String){
+        viewModelScope.launch {
+
+            _picksFromDatabase.value = roomRepository.getPicksForSubmit(week.trim())
+
         }
     }
 
     private fun callApiForMatchups(year: Int, week: Int, wasFiltered: Boolean) {
-        Timber.i("CALLING API============database came back false")
+
         val listToReturn = ArrayList<IOScoresResponse.IOScoresResponseItem>()
         repository.getApiService().getScoresByWeek(year, week, Constants.key).enqueue(object : Callback<IOScoresResponse> {
             override fun onResponse(
@@ -139,7 +150,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     response: Response<IOScoresResponse>
             ) {
                 val responseData = response.body()
-                Timber.i("RESPONSE DATA FOR WEEK 10 = $responseData")
+
                 if (responseData != null) {
                     for (item in responseData) {
                         if (item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE" && item.canceled != true) {
@@ -214,7 +225,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val returnedDataWeek = returnedString.let { it.second?.let{ retrievedWeek -> checkIfNeedToUpdate(retrievedWeek)} }
         if(returnedDataWeek == true){
             Timber.i("WEEKNEEDS UPDATATING, CALLING API")
-            getWeekData(2020, _upcomingWeek.value!!)
+            getWeekData(_currentYear.value!!, _upcomingWeek.value!!)
 
         } else {
             Timber.i("WEEKNEEDS NO UPDATATING, USING DATABASE")
@@ -298,8 +309,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _isReadyForUi.postValue(input)
     }
 
-    fun setDate(date: Date){
+    fun setDate(date: Date, year: Int){
         _currentDate.value = date
+        _currentYear.value = year
     }
     fun getWeekToPick(date: Date) : Pair<String, String>  {
         when {
@@ -307,83 +319,83 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 val weekString = setWeek(1)
                 return Pair(weekString, "null")
             }
-            date.before(weeksArray[1].startDate) && date.after(weeksArray[0].startDate) || date == weeksArray[1].startDate -> {
+            date.before(weeksArray[1].startDate) && date.after(weeksArray[0].startDate) || date == weeksArray[1].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(1)
                 val weekString = setWeek(2)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[2].startDate)&&date.after(weeksArray[1].startDate)|| date == (weeksArray[2].startDate) -> {
+            date.before(weeksArray[2].startDate)&&date.after(weeksArray[1].startDate)|| date == (weeksArray[2].startDate) && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(2)
                 val weekString = setWeek(3)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[3].startDate)&&date.after(weeksArray[2].startDate)|| date == (weeksArray[3].startDate) -> {
+            date.before(weeksArray[3].startDate)&&date.after(weeksArray[2].startDate)|| date == (weeksArray[3].startDate) && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(3)
                 val weekString = setWeek(4)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[4].startDate)&&date.after(weeksArray[3].startDate)|| date == weeksArray[4].startDate -> {
+            date.before(weeksArray[4].startDate)&&date.after(weeksArray[3].startDate)|| date == weeksArray[4].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(4)
                 val weekString = setWeek(5)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[5].startDate)&&date.after(weeksArray[4].startDate)|| date == weeksArray[5].startDate -> {
+            date.before(weeksArray[5].startDate)&&date.after(weeksArray[4].startDate)|| date == weeksArray[5].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(5)
                 val weekString = setWeek(6)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[6].startDate)&&date.after(weeksArray[5].startDate)|| date == weeksArray[6].startDate -> {
+            date.before(weeksArray[6].startDate)&&date.after(weeksArray[5].startDate)|| date == weeksArray[6].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(6)
                 val weekString = setWeek(7)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[7].startDate)&&date.after(weeksArray[6].startDate)|| date == weeksArray[7].startDate -> {
+            date.before(weeksArray[7].startDate)&&date.after(weeksArray[6].startDate)|| date == weeksArray[7].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(7)
                 val weekString = setWeek(8)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[8].startDate)&&date.after(weeksArray[7].startDate)|| date == weeksArray[8].startDate -> {
+            date.before(weeksArray[8].startDate)&&date.after(weeksArray[7].startDate)|| date == weeksArray[8].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(8)
                 val weekString = setWeek(9)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[9].startDate)&&date.after(weeksArray[8].startDate)|| date == weeksArray[9].startDate -> {
+            date.before(weeksArray[9].startDate)&&date.after(weeksArray[8].startDate)|| date == weeksArray[9].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(9)
                 val weekString = setWeek(10)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[10].startDate)&&date.after(weeksArray[9].startDate)|| date == weeksArray[10].startDate -> {
+            date.before(weeksArray[10].startDate)&&date.after(weeksArray[9].startDate)|| date == weeksArray[10].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(10)
                 val weekString = setWeek(11)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[11].startDate)&&date.after(weeksArray[10].startDate)|| date == weeksArray[11].startDate -> {
+            date.before(weeksArray[11].startDate)&&date.after(weeksArray[10].startDate)|| date == weeksArray[11].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(11)
                 val weekString = setWeek(12)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[12].startDate)&&date.after(weeksArray[11].startDate)|| date == weeksArray[12].startDate -> {
+            date.before(weeksArray[12].startDate)&&date.after(weeksArray[11].startDate)|| date == weeksArray[12].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(12)
                 val weekString = setWeek(13)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[13].startDate)&&date.after(weeksArray[12].startDate)|| date == weeksArray[13].startDate -> {
+            date.before(weeksArray[13].startDate)&&date.after(weeksArray[12].startDate)|| date == weeksArray[13].startDate && date.time <= weeksArray[1].startDate.time -> {
 
                 val lastWeekString = setWeek(13)
                 val weekString = setWeek(14)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[14].startDate)&&date.after(weeksArray[13].startDate)|| date == weeksArray[14].startDate -> {
+            date.before(weeksArray[14].startDate)&&date.after(weeksArray[13].startDate)|| date == weeksArray[14].startDate && date.time <= weeksArray[1].startDate.time-> {
                 val weekString = setWeek(15)
                 val lastWeekString = setWeek(14)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[15].startDate)&&date.after(weeksArray[14].startDate)|| date == weeksArray[15].startDate -> {
+            date.before(weeksArray[15].startDate)&&date.after(weeksArray[14].startDate)|| date == weeksArray[15].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val weekString = setWeek(16)
                 val lastWeekString = setWeek(15)
                 return Pair(weekString, lastWeekString)
             }
-            date.before(weeksArray[16].startDate)&&date.after(weeksArray[15].startDate)|| date == weeksArray[16].startDate -> {
+            date.before(weeksArray[16].startDate)&&date.after(weeksArray[15].startDate)|| date == weeksArray[16].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val weekString = setWeek(17)
                 val lastWeekString = setWeek(16)
                 return Pair(weekString, lastWeekString)

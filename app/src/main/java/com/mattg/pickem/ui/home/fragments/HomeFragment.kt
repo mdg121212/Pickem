@@ -13,11 +13,10 @@ import com.firebase.ui.auth.AuthUI
 import com.mattg.pickem.LoginActivity
 import com.mattg.pickem.R
 import com.mattg.pickem.db.Pick
-import com.mattg.pickem.models.Game
+import com.mattg.pickem.models.general.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import com.mattg.pickem.utils.SharedPrefHelper
 import com.mattg.pickem.utils.getDate
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.CoroutineScope
@@ -95,6 +94,7 @@ class HomeFragment : Fragment() {
 
         handleDate()
         val date = Date()
+
         currentDateToSaveForCache = date.toString()
         observeViewModel()
 
@@ -160,7 +160,7 @@ class HomeFragment : Fragment() {
         )
 
         return Pick(
-            weekString,
+            weekString.trim(),
             "name for now",
             subList.toString().trim(),
             picksFormatted,
@@ -170,7 +170,17 @@ class HomeFragment : Fragment() {
 
 
     private fun handleDate(){
-        checkDate(getDate())
+        //calender instance with get first field retrieves the correct year
+        val calender = Calendar.getInstance()
+        val year = calender.get(1)
+        val hour = calender.get(Calendar.HOUR)
+        val minute = calender.get(Calendar.MINUTE)
+        val dow = calender.get(Calendar.DAY_OF_WEEK)
+        val day = calender.get(Calendar.DATE)
+        val time = calender.time
+
+        Timber.i("[[[[[[[[   vars from calender, hour: $hour, minute: $minute, time: $time dow: $dow, date: $day")
+        checkDate(getDate(), year)
     }
 
 
@@ -180,13 +190,13 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun checkDate(date: Date) {
+    private fun checkDate(date: Date, year: Int) {
         val week = homeViewModel.getWeekToPick(date)
         //adding the week string to shared prefs to use app wide
         SharedPrefHelper.addWeekToPrefs(requireContext(), week.first)
         SharedPrefHelper.addLastOrCurrentWeekToPrefs(requireContext(), week.second)
 
-        homeViewModel.setDate(date)
+        homeViewModel.setDate(date, year)
         Timber.i("Home ViewModel upcoming week value is = ${homeViewModel.upcomingWeek.value}")
     }
 
@@ -385,7 +395,7 @@ class HomeFragment : Fragment() {
                 logout()
             }
             R.id.mnu_view_saved_picks -> {
-                val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null)
+                val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null, null)
                 findNavController().navigate(R.id.action_navigation_home_to_currentList)
             }
             R.id.mnu_home_refresh -> {
@@ -407,5 +417,8 @@ class HomeFragment : Fragment() {
                 startActivity(intent)
             }
     }
+
+
+
 
 }

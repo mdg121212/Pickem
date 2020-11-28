@@ -6,7 +6,7 @@
     <data>
 <variable
     name="game"
-    type="com.mattg.pickem.models.Game" />
+    type="com.mattg.pickem.models.general.Game" />
     </data>
 
 

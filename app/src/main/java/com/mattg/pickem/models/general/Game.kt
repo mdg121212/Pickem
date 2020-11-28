@@ -1,4 +1,4 @@
-package com.mattg.pickem.models
+package com.mattg.pickem.models.general
 
 data class Game(val homeTeam: String,
                 val awayTeam: String,

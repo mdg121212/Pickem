@@ -1,4 +1,4 @@
-package com.mattg.pickem.models
+package com.mattg.pickem.models.iomodels
 
 
 import com.google.gson.annotations.SerializedName

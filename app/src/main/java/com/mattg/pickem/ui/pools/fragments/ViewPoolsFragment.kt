@@ -1,4 +1,4 @@
-package com.mattg.pickem.ui.dashboard.fragments
+package com.mattg.pickem.ui.pools.fragments
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -15,7 +15,7 @@ import com.mattg.pickem.LoginActivity
 import com.mattg.pickem.R
 import com.mattg.pickem.models.firebase.Invite
 import com.mattg.pickem.models.firebase.Pool
-import com.mattg.pickem.ui.dashboard.PoolViewModel
+import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
 import com.mattg.pickem.ui.home.adapters.*
 import com.mattg.pickem.utils.*
 import kotlinx.android.synthetic.main.create_pool_dialog.*

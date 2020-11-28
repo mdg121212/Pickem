@@ -6,8 +6,8 @@ import androidx.room.*
 @Dao
 interface PicksDao {
 
-    @Query("SELECT * FROM picks WHERE week = :week")
-    suspend fun getPicksByWeek(week: Int): Pick
+    @Query("SELECT * FROM picks WHERE week LIKE :week")
+    suspend fun getPicksByWeek(week: String): List<Pick>
 
     @Query("SELECT * FROM picks order by week")
      fun getPicksLiveData(): LiveData<Pick>
