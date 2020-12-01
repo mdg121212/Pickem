@@ -2,7 +2,7 @@ package com.mattg.pickem.db.repos
 
 import androidx.lifecycle.LiveData
 import com.mattg.pickem.db.Pick
-import com.mattg.pickem.db.PicksDao
+import com.mattg.pickem.db.daos.PicksDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

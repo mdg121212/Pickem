@@ -1,21 +1,19 @@
 package com.mattg.pickem.ui.home.fragments
 
+import android.animation.ObjectAnimator
 import android.app.Dialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.*
 import androidx.core.view.get
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.firebase.ui.auth.AuthUI
-import com.mattg.pickem.LoginActivity
 import com.mattg.pickem.R
-import com.mattg.pickem.db.Pick
 import com.mattg.pickem.models.general.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
+import com.mattg.pickem.utils.BaseFragment
 import com.mattg.pickem.utils.SharedPrefHelper
+import com.mattg.pickem.utils.formatForPickDatabase
 import com.mattg.pickem.utils.getDate
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_home.*
@@ -27,7 +25,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 @Suppress("DEPRECATION")
-class HomeFragment : Fragment() {
+class HomeFragment : BaseFragment() {
 
     private lateinit var homeViewModel: HomeViewModel
  //   private var selectionsString = ""
@@ -35,6 +33,7 @@ class HomeFragment : Fragment() {
     private var pairList = ArrayList<Pair<RadioGroup, TextView>>()
     private var gamesCount = 0
     private var currentDateToSaveForCache: String? = null
+    private var weekToCheck: String ?= null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -93,9 +92,11 @@ class HomeFragment : Fragment() {
         })
 
         handleDate()
+
         val date = Date()
 
         currentDateToSaveForCache = date.toString()
+
         observeViewModel()
 
         button.setOnClickListener {
@@ -104,10 +105,7 @@ class HomeFragment : Fragment() {
         }
         button_picks.setOnClickListener {
             setPicksButtonFunction()
-
         }
-
-
     }
 
 
@@ -119,7 +117,6 @@ class HomeFragment : Fragment() {
                 val weekString = tv_home_title.text.toString()
                 val finalString = currentDateToSaveForCache?.let { date ->
                     generatePickList(checkBoxList, pointsString, weekString, date)
-
                 }
 
                 if (finalString != null) {
@@ -138,34 +135,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun savePicksToDatabase(picks: String, picksFormatted: String) {
-        val pick = formatForPickDatabase(picks, picksFormatted)
+        val pick = formatForPickDatabase(requireContext(), picks, picksFormatted)
         homeViewModel.savePickToDatabase(pick)
-    }
-
-    private fun formatForPickDatabase(picks: String, picksFormatted: String): Pick {
-        val saveString = picks.replace("[", "").replace("]", "")
-
-        val splitString = saveString.split(",")
-        val objectList = splitString.toList()
-        val listSize = objectList.size
-        val weekString = objectList[listSize - 2]
-        val finalPoints = objectList[listSize - 3]
-        val dateString = objectList[listSize - 1]
-
-        val subList = objectList.subList(0, listSize - 3)
-        Timber.i(
-            "$weekString = variable to save for week.\n$finalPoints = final points.\n$dateString = date to save.\n${
-                subList.toString().trim()
-            } = picks to save."
-        )
-
-        return Pick(
-            weekString.trim(),
-            "name for now",
-            subList.toString().trim(),
-            picksFormatted,
-            finalPoints.trim()
-        )
     }
 
 
@@ -183,22 +154,22 @@ class HomeFragment : Fragment() {
         checkDate(getDate(), year)
     }
 
-
-    private fun checkGameCount() {
-        homeViewModel.gameCount.observe(viewLifecycleOwner) {
-            gamesCount = it
-        }
-    }
-
     private fun checkDate(date: Date, year: Int) {
         val week = homeViewModel.getWeekToPick(date)
         //adding the week string to shared prefs to use app wide
+        weekToCheck = week.first
         SharedPrefHelper.addWeekToPrefs(requireContext(), week.first)
         SharedPrefHelper.addLastOrCurrentWeekToPrefs(requireContext(), week.second)
 
         homeViewModel.setDate(date, year)
         Timber.i("Home ViewModel upcoming week value is = ${homeViewModel.upcomingWeek.value}")
     }
+    private fun checkGameCount() {
+        homeViewModel.gameCount.observe(viewLifecycleOwner) {
+            gamesCount = it
+        }
+    }
+
 
     private fun setText(list: ArrayList<Game>) {
         val gamesNumber = homeViewModel.gameCount.value
@@ -228,9 +199,7 @@ class HomeFragment : Fragment() {
             )
             Timber.i("setUpRadioGroup called")
             gamesCount = count
-
         }
-
     }
 
 
@@ -289,9 +258,7 @@ class HomeFragment : Fragment() {
         return count == list.size
     }
 
-    private fun resetFragmentToUpComingWeek(){
 
-    }
 
     private fun generatePickList(
         list: ArrayList<RadioGroup>,
@@ -302,7 +269,6 @@ class HomeFragment : Fragment() {
         val pickList = ArrayList<String>()
         val pickList2 = ArrayList<String>()
         for (group in list) {
-
             val homeTeamButton = (group[1] as RadioButton)
             val awayTeamButton = (group[2] as RadioButton)
             if (homeTeamButton.isChecked) {
@@ -338,12 +304,43 @@ class HomeFragment : Fragment() {
         homeViewModel.dateToCheckWinner.observe(viewLifecycleOwner){
             if (!it.isNullOrEmpty()){
                 Toast.makeText(requireContext(), "Date for checking winner is $it", Toast.LENGTH_SHORT ).show()
+                SharedPrefHelper.addDateToCheckToPrefs(requireContext(), it, weekToCheck!!)
+                Timber.i("[[[[[[ just added $it to shared prefs as date to check winner need to delete this when actually choosing the winner")
+            }
+        }
+        homeViewModel.showSpinner.observe(viewLifecycleOwner){
+            when(it){
+                true -> { showFootBallSpinner() }
+                    false -> { hideFootballSpinner() }
             }
         }
     }
 
-    private fun emptyHomeScreenButtonClick() {
 
+
+    private fun animation(){
+        val animator = ObjectAnimator.ofFloat(iv_football_loading, View.ROTATION, -360f, 0f)
+
+        animator.repeatCount = 1
+        animator.duration = 1000
+        animator.start()
+    }
+
+    private fun showFootBallSpinner(){
+
+        iv_football_loading.apply {
+            View.VISIBLE
+
+        }
+        animation()
+
+    }
+    private fun hideFootballSpinner(){
+        iv_football_loading.visibility = View.GONE
+    }
+
+    private fun emptyHomeScreenButtonClick() {
+        homeViewModel.setShowSpinner(true)
         homeViewModel.upcomingWeek.value?.let { it1 ->
            CoroutineScope(Dispatchers.IO).launch {
                homeViewModel.getMatchupsFiltered(it1)
@@ -352,6 +349,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun getMatchupsForDifferentWeek(week: Int){
+        homeViewModel.setShowSpinner(true)
         CoroutineScope(Dispatchers.IO).launch {
             homeViewModel.getMatchupsFiltered(week)
         }
@@ -391,34 +389,28 @@ class HomeFragment : Fragment() {
             R.id.mnu_change_week -> {
                showWeekDialog()
             }
-            R.id.mnu_logout -> {
+            R.id.mnu_home_logout -> {
                 logout()
             }
             R.id.mnu_view_saved_picks -> {
-                val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null, null)
+              //  val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null, null)
                 findNavController().navigate(R.id.action_navigation_home_to_currentList)
             }
             R.id.mnu_home_refresh -> {
                 handleDate()
                 homeViewModel.clearMatchups()
-                emptyHomeScreenButtonClick()
+                homeViewModel.resetHomeScreen()
             }
+
+            R.id.home_settings -> findNavController().navigate(R.id.action_navigation_home_to_settingsFragment)
         }
         return true
     }
 
-    private fun logout() {
-        AuthUI.getInstance()
-            .signOut(requireContext())
-            .addOnCompleteListener {
-                //user is now signed out
-                Toast.makeText(requireContext(), "Signed out", Toast.LENGTH_SHORT).show()
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                startActivity(intent)
-            }
+
     }
 
 
 
 
-}
+

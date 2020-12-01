@@ -214,20 +214,20 @@ class ViewPoolsFragment : BaseFragment() {
             R.id.mnu_pool_mng_logout -> {
                logout()
             }
-            R.id.mnu_pool_mng_todo -> {
-
+            R.id.mnu_pool_settings -> {
+                findNavController().navigate(R.id.action_navigation_pools_to_settingsFragment)
             }
         }
         return true
     }
-    private fun logout(){
-        AuthUI.getInstance()
-            .signOut(requireContext())
-            .addOnCompleteListener {
-                //user is now signed out
-                Toast.makeText(requireContext(), "Signed out", Toast.LENGTH_SHORT).show()
-                val intent = Intent(requireContext(), LoginActivity::class.java)
-                startActivity(intent)
-            }
-    }
+//    private fun logout(){
+//        AuthUI.getInstance()
+//            .signOut(requireContext())
+//            .addOnCompleteListener {
+//                //user is now signed out
+//                Toast.makeText(requireContext(), "Signed out", Toast.LENGTH_SHORT).show()
+//                val intent = Intent(requireContext(), LoginActivity::class.java)
+//                startActivity(intent)
+//            }
+//    }
 }

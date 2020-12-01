@@ -67,6 +67,38 @@
     <string name="todo">TODO</string>
     <string name="football_image_to_show_loading">Football image to show loading</string>
     <string name="football_header_graphic">Football header graphic</string>
+    <string name="news_item_image">News item image</string>
+    <string name="refresh">Refresh</string>
+    <string name="espn">ESPN</string>
+    <string name="espn_nfl_nation">ESPN (NFL Nation)</string>
+    <string name="pro_football_network">Pro Football Network</string>
+    <string name="new_york_times_nfl">New York Times NFL</string>
+     <!--Night Mode Strings-->
+    <string name="pref_key_night" translatable="false">key_night_mode</string>
+    <string name="pref_night_title">Night mode</string>
+    <string name="pref_night_summary">Select a dark or light theme.</string>
+    <string name="pref_night_dialog">Set Night mode</string>
+    <string name="pref_night_auto" translatable="false">auto</string>
+    <string name="pref_night_on" translatable="false">on</string>
+    <string name="pref_night_off" translatable="false">off</string>
+    <string name="night_mode_auto">Automatic</string>
+    <string name="night_mode_on">Night mode</string>
+    <string name="night_mode_off">Day mode</string>
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="settings">Settings</string>
 
 
 </resources>

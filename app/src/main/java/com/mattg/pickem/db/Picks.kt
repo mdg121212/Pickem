@@ -13,7 +13,8 @@ data class Pick (
     val name: String,
     val picks: String,
     val picksGamesOnly: String,
-    val finalPoints: String
+    val finalPoints: String,
+    val dateToCheck: String
 ) {
     @Ignore
     constructor(
@@ -21,14 +22,16 @@ data class Pick (
         name: String,
         picks: String,
         picksGamesOnly: String,
-        finalPoints: String
+        finalPoints: String,
+        dateToCheck: String
     ): this(
         0,
         week,
         name,
         picks,
         picksGamesOnly,
-        finalPoints
+        finalPoints,
+        dateToCheck
     )
 
 }

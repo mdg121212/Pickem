@@ -17,9 +17,11 @@ import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
 import com.mattg.pickem.utils.PicksClickListener
 import com.mattg.pickem.ui.home.adapters.SavedPicksAdapter
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
+import com.mattg.pickem.utils.BaseFragment
+import com.mattg.pickem.utils.shortToast
 import kotlinx.android.synthetic.main.fragment_current_list.*
 
-class CurrentList : Fragment() {
+class CurrentList : BaseFragment() {
 
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var clickListener: PicksClickListener
@@ -67,12 +69,11 @@ class CurrentList : Fragment() {
 
     }
 
-    fun observeViewModel(){
+    private fun observeViewModel(){
         homeViewModel.picksString.observe(viewLifecycleOwner){
             tv_current_list_title.text = if(it.isNullOrBlank()) "No data" else it
         }
         homeViewModel.picksFromDatabase.observe(viewLifecycleOwner){
-
             setUpRecycler(it)
         }
 
@@ -109,7 +110,7 @@ class CurrentList : Fragment() {
 
                     AlertDialog.Builder(requireContext()).setTitle("Options")
                             .setPositiveButton("Send Picks") { _, _ ->
-                                Toast.makeText(requireContext(), "ADD EMAIL/TEXT SEND CAPABILITY", Toast.LENGTH_SHORT).show()
+                               requireContext().shortToast("ADD EMAIL/TEXT SEND CAPABILITY")
                             }
                             .setNeutralButton("Cancel") { dialog , _ ->
                                 dialog.dismiss()
@@ -129,25 +130,6 @@ class CurrentList : Fragment() {
     private fun deletePicks(id: Int) {
         homeViewModel.deletePicksFromDatabase(id)
 
-    }
-
-    private fun showUsePicksDialog(picks: Pick) {
-
-        AlertDialog.Builder(requireContext()).setTitle("Picks")
-                .setPositiveButton("Add picks to a weekly pool"){dialog, _ ->
-                    if(args.wasFromPoolDetail){
-                        poolViewModel.setPicks(picks)
-                        val action = CurrentListDirections.actionCurrentListToPoolDetailFragment(null,args.poolName, true)
-                        findNavController().navigate(action)
-                    } else {
-                        poolViewModel.setPicks(picks)
-                        findNavController().navigate(R.id.action_currentList_to_navigation_dashboard)
-                    }
-
-                }
-                .setNegativeButton("Cancel"){dialog,_ ->
-                    dialog.dismiss()
-                }.show()
     }
 
 

@@ -5,8 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.mattg.pickem.db.daos.ApiDao
+import com.mattg.pickem.db.daos.MatchupDao
+import com.mattg.pickem.db.daos.PicksDao
 
-@Database(entities =[Pick::class, ApiResponseCached::class, WeekMatchUp::class], version = 8, exportSchema = false)
+@Database(entities =[Pick::class, ApiResponseCached::class, WeekMatchUp::class], version = 9, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class PicksDatabase : RoomDatabase() {
 

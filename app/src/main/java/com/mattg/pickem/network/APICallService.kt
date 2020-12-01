@@ -1,23 +1,36 @@
 package com.mattg.pickem.network
 
-import android.app.Application
-import android.content.Context
-import com.mattg.pickem.utils.hasNetwork
-import okhttp3.Cache
+
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-//key 2797584ca788420d943fd25c365589ce
+
 object APICallService {
 
     private const val IO_BASE_URL = "https://api.sportsdata.io/v3/nfl/scores/json/"
+    private const val RSS_BASE_URL = "https://www.espn.com/espn/rss/nfl/"
+    private const val RSS_JSON_CONVERTED = "https://feed2json.org/"
 //    //5mb cache
 //    private val cacheSize = (5 * 1024 * 1024).toLong()
 //    //cache variable
 //    val myCache = Cache(context.cacheDir, cacheSize)
 
-    private var ioApi: SportsDataApi? = null
+    private var ioApi: SportsDataApi ?= null
+    private var rssApi: RSSApi ?= null
+
+    private fun getRssApi(): RSSApi {
+        if(rssApi == null){
+            val okHttpClient = OkHttpClient.Builder()
+            rssApi = Retrofit.Builder()
+                .baseUrl(RSS_JSON_CONVERTED)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient.build())
+                .build()
+                .create(RSSApi::class.java)
+        }
+        return rssApi!!
+    }
 
     private fun getSportsIOApiCall(): SportsDataApi {
         if(ioApi == null){
@@ -48,4 +61,6 @@ object APICallService {
     }
 
     fun fetchIOApi() = getSportsIOApiCall()
+
+    fun fetchRssApi() = getRssApi()
 }

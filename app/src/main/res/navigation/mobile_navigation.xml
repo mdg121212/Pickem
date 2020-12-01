@@ -19,7 +19,7 @@
             app:popExitAnim="@anim/slide_up" />
         <action
             android:id="@+id/action_navigation_home_to_navigation_notifications"
-            app:destination="@id/navigation_notifications"
+            app:destination="@id/navigation_news"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
@@ -31,6 +31,9 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up"/>
+        <action
+            android:id="@+id/action_navigation_home_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
@@ -40,7 +43,7 @@
         tools:layout="@layout/fragment_dashboard">
         <action
             android:id="@+id/action_navigation_dashboard_to_navigation_notifications"
-            app:destination="@id/navigation_notifications"
+            app:destination="@id/navigation_news"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
@@ -59,27 +62,36 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up" />
+        <action
+            android:id="@+id/action_navigation_pools_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.mattg.pickem.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" >
+        android:id="@+id/navigation_news"
+        android:name="com.mattg.pickem.ui.news.fragments.NewsFragment"
+        android:label="News"
+        tools:layout="@layout/fragment_news">
         <action
             android:id="@+id/action_navigation_notifications_to_navigation_dashboard"
             app:destination="@id/navigation_pools"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up"/>
+            app:popExitAnim="@anim/slide_up" />
         <action
             android:id="@+id/action_navigation_notifications_to_navigation_home"
             app:destination="@id/navigation_home"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up"/>
+            app:popExitAnim="@anim/slide_up" />
+        <action
+            android:id="@+id/action_navigation_news_to_winnerSplashFragment2"
+            app:destination="@id/winnerSplashFragment" />
+        <action
+            android:id="@+id/action_navigation_news_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
     <fragment
         android:id="@+id/currentList"
@@ -93,13 +105,6 @@
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/slide_up"/>
-        <action
-            android:id="@+id/action_currentList_to_viewPicksFragment"
-            app:destination="@id/viewPicksFragment"
-            app:enterAnim="@anim/fade_in"
-            app:exitAnim="@anim/slide_down"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up" />
         <action
             android:id="@+id/action_currentList_to_poolDetailFragment"
             app:destination="@id/poolDetailFragment"
@@ -129,19 +134,6 @@
             app:argType="string"
             app:nullable="true"
             android:defaultValue="null" />
-    </fragment>
-    <fragment
-        android:id="@+id/viewPicksFragment"
-        android:name="com.mattg.pickem.detailui.ViewPicksFragment"
-        android:label="Picks"
-        tools:layout="@layout/fragment_view_picks">
-        <action
-            android:id="@+id/action_viewPicksFragment_to_currentList"
-            app:destination="@id/currentList"
-            app:enterAnim="@anim/fade_in"
-            app:exitAnim="@anim/slide_down"
-            app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up" />
     </fragment>
     <fragment
         android:id="@+id/poolDetailFragment"
@@ -176,6 +168,16 @@
             android:name="werePicksJustSelected"
             app:argType="boolean"
             android:defaultValue="false" />
+        <action
+            android:id="@+id/action_poolDetailFragment_to_winnerSplashFragment"
+            app:destination="@id/winnerSplashFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/slide_down"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/slide_up" />
+        <action
+            android:id="@+id/action_poolDetailFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
     <fragment
         android:id="@+id/poolPlayersPicksFragment"
@@ -194,4 +196,18 @@
             app:argType="integer"
             android:defaultValue="0" />
     </fragment>
+    <fragment
+        android:id="@+id/winnerSplashFragment"
+        android:name="com.mattg.pickem.ui.pools.fragments.WinnerSplashFragment"
+        android:label="Winner"
+        tools:layout="@layout/fragment_winner_splash" >
+        <argument
+            android:name="winnerName"
+            app:argType="string"
+            android:defaultValue="nobody" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.mattg.pickem.ui.detailui.SettingsFragment"
+        android:label="SettingsFragment" />
 </navigation>

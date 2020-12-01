@@ -24,9 +24,15 @@ class FirestoreRepository {
     fun resetUserInvitesField() {
         val usersInviteReceivedCollection = getUserBaseCollection(currentUser?.uid!!).collection("invitesReceived")
         usersInviteReceivedCollection.addSnapshotListener { value, _ ->
-            if (value!!.isEmpty) {
-                getUserBaseCollection(currentUser?.uid!!).update("invites", false)
-            }
+           try{
+               if (value!!.isEmpty) {
+                   getUserBaseCollection(currentUser?.uid!!).update("invites", false)
+               }
+           } catch(e: Exception){
+               Timber.i("ERROR: ${e.message}")
+               e.printStackTrace()
+           }
+
         }
     }
 
@@ -217,13 +223,64 @@ class FirestoreRepository {
 
     }
 
+    fun arePicksForWeek(userId: String, poolId: String, weekString: String, poolName: String, poolOwnerName: String) {
+        val listToReturn = ArrayList<String>()
+        val picksRef = getUserPoolsBasePath(userId).get()
+        picksRef.addOnSuccessListener {
+            val picks = it.documents
+            for (doc in picks){
+                val docPoolName = doc["poolName"].toString().trim()
+                val docPoolOwnerName = doc["ownerName"].toString().trim()
+                Timber.i("[[[[[[[[poolname: $docPoolName ownername: $docPoolOwnerName")
+                Timber.i("[[[[[ inside the pools document check")
+
+                if(docPoolName == poolName && docPoolOwnerName == poolOwnerName){
+                    Timber.i("[[[[[  checking for picks, found the doc that matches the pool")
+                    val id = doc["documentId"].toString()
+
+                    val checkPicksRef = getUserPoolsBasePath(userId)
+                        .document(id).collection("playerPicks").get()
+                        checkPicksRef.addOnSuccessListener {
+                            val picks = it.documents
+                            if(picks.size == 0){
+                                Timber.i("[[[[[[[ no picks at all in this collection, return false")
+
+                                return@addOnSuccessListener
+                            }
+
+                            for(pick in picks){
+                                val pickWeek = pick["week"].toString().trim()
+                                if(pickWeek == weekString.trim() ){
+                                    Timber.i("[[[[[[[found one pick that matches the week, should return true")
+
+
+                                    return@addOnSuccessListener
+                                }
+                            }
+
+                        }
+                } else {
+                    Timber.i("[[[[[ no documents found for this pool")
+
+                }
+            }
+        }.addOnCompleteListener {
+
+        }
+
+    }
+
     fun getUserBaseCollection(userId: String): DocumentReference {
         return mFirebaseDatabaseInstance.collection("users").document(userId)
     }
 
     fun getUserPoolsBasePath(userId: String): CollectionReference {
-        //do the business logic in the viewmodel
         return mFirebaseDatabaseInstance.collection("users").document(userId).collection("pools")
+    }
+
+    fun getPool(userId: String, poolId: String): DocumentReference {
+        return mFirebaseDatabaseInstance.collection("users").document(userId).collection("pools")
+            .document(poolId)
     }
 
 
@@ -239,6 +296,10 @@ class FirestoreRepository {
         return mFirebaseDatabaseInstance.collection("users").document(userId).collection("pools").document(poolId).collection("players")
     }
 
+    fun getPoolPlayerPicks(userId: String, poolId: String ): CollectionReference {
+        return getUserBaseCollection(userId).collection("pools")
+            .document(poolId).collection("playerPicks")
+    }
 
     fun updateUserBase(userId: String, data: HashMap<String, Any>): Task<Void> {
         return mFirebaseDatabaseInstance.collection("users").document(userId).update(data)
@@ -246,5 +307,9 @@ class FirestoreRepository {
 
     fun getPickDocumentForDelete(userId: String, poolDocId: String, playerPicksDocId: String){
         mFirebaseDatabaseInstance.document("/users/{$userId}/pools/{$poolDocId}/playerPicks/{$playerPicksDocId}").delete()
+    }
+
+    fun closeInstance(){
+
     }
 }
