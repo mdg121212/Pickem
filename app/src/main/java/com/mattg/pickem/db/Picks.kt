@@ -3,7 +3,7 @@ package com.mattg.pickem.db
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
+
 
 @Entity(tableName = "picks")
 data class Pick (

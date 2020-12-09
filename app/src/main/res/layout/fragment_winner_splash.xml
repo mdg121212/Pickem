@@ -9,12 +9,15 @@
 
     <TextView
         android:id="@+id/tv_winner_text"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:textAlignment="center"
         android:textSize="18sp"
         android:textStyle="bold"
         android:visibility="invisible"
-        android:layout_gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

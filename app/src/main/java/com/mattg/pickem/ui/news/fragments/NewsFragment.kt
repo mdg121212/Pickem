@@ -2,7 +2,6 @@ package com.mattg.pickem.ui.news.fragments
 
 import android.os.Bundle
 import android.view.*
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -93,7 +92,6 @@ class NewsFragment : BaseFragment() {
             R.id.mnu_news_logout -> logout()
 
             R.id.news_settings -> {
-                //findNavController().navigate(R.id.action_navigation_news_to_winnerSplashFragment2)
                 findNavController().navigate(R.id.action_navigation_news_to_settingsFragment)
             }
         }

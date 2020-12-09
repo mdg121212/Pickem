@@ -15,7 +15,7 @@ interface ApiDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
      fun insertNewCache(cache: ApiResponseCached)
 
-    @Delete()
+    @Delete
     fun deleteCache(cache: ApiResponseCached)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)

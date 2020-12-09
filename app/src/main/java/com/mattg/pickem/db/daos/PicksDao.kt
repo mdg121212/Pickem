@@ -19,7 +19,7 @@ interface PicksDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPicks(picks: Pick)
 
-    @Delete()
+    @Delete
     suspend fun deletePick(pick: Pick)
 
     @Query("DELETE FROM picks")

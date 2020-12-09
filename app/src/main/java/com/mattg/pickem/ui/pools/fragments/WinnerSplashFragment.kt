@@ -5,20 +5,16 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Bundle
-import android.provider.ContactsContract
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
-import android.view.animation.AnimationUtils
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatImageView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.navigation.NavArgs
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
 import com.mattg.pickem.R
 import kotlinx.android.synthetic.main.fragment_winner_splash.*
@@ -27,27 +23,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.*
-import kotlin.concurrent.timerTask
 import kotlin.random.Random
-
-
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
 
 class WinnerSplashFragment : Fragment() {
 
-    lateinit var star: ImageView
-    lateinit var textView: TextView
+    private lateinit var star: ImageView
+    private lateinit var textView: TextView
     var width = 0
     var height = 0
-    val args : WinnerSplashFragmentArgs by navArgs()
+    private val args: WinnerSplashFragmentArgs by navArgs()
 
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_winner_splash, container, false)
@@ -61,7 +51,7 @@ class WinnerSplashFragment : Fragment() {
                 height = it
             }
         }
-        Timber.i("testinganimation -- container at on create view is ${container?.width} wide and ${container?.height} tall")
+
         return root
     }
 
@@ -77,30 +67,29 @@ class WinnerSplashFragment : Fragment() {
         val timeDelay = 100L
         val adjustedTimeDelay = Random.nextInt(10, 20) * timeDelay
 
-        for(x in 0..30){
-          CoroutineScope(Dispatchers.Main).launch {
-              count++
-              if(count == 30){
-                  showWinnerText("The winner is\n $name")
-                  delay(5000)
-                  requireActivity().onBackPressed()
-                  onDetach()
-                  return@launch
-              }
-              starShower()
-              delay(adjustedTimeDelay)
+        for (x in 0..30) {
+            CoroutineScope(Dispatchers.Main).launch {
+                count++
+                if (count == 30) {
+                    showWinnerText("The winner is\n $name")
+                    delay(2500)
+                    requireActivity().onBackPressed()
+                    return@launch
+                }
+                starShower()
+                delay(adjustedTimeDelay)
 
 
-          }
+            }
+
+
         }
-
-
 
 
     }
 
 
-    private fun starShower(){
+    private fun starShower() {
         val container = star.parent as ViewGroup
         val containerW = width
         val containerH = height
@@ -113,7 +102,7 @@ class WinnerSplashFragment : Fragment() {
         val newStar = AppCompatImageView(requireContext())
         newStar.setImageResource(R.drawable.star)
         newStar.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT)
+                FrameLayout.LayoutParams.WRAP_CONTENT)
 
         container.addView(newStar)
 
@@ -136,7 +125,7 @@ class WinnerSplashFragment : Fragment() {
         set.playTogether(mover, rotator)
         set.duration = (Math.random() * 1500 + 500).toLong()
 
-        set.addListener(object: AnimatorListenerAdapter(){
+        set.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
                 container.removeView(newStar)
             }
@@ -145,12 +134,12 @@ class WinnerSplashFragment : Fragment() {
         set.start()
     }
 
-    private fun showWinnerText(text: String){
-      textView.text = text
+    private fun showWinnerText(text: String) {
+        textView.text = text
         textView.visibility = View.VISIBLE
         val scalerX = ObjectAnimator.ofFloat(textView, View.SCALE_X, textView.scaleX, textView.scaleX * 3)
-      val scalerY = ObjectAnimator.ofFloat(textView, View.SCALE_Y, textView.scaleY, textView.scaleY * 3)
-      val set = AnimatorSet()
+        val scalerY = ObjectAnimator.ofFloat(textView, View.SCALE_Y, textView.scaleY, textView.scaleY * 3)
+        val set = AnimatorSet()
         set.playTogether(scalerX, scalerY)
 
         set.start()

@@ -6,7 +6,6 @@ package com.mattg.pickem.db.repos
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
-import com.mattg.pickem.models.firebase.PickForDisplay
 import com.mattg.pickem.models.firebase.Pool
 import timber.log.Timber
 
@@ -96,41 +95,90 @@ class FirestoreRepository {
         return Pair(bool, idToPass)
     }
 
-    fun deletePool(poolId: String, poolName: String): Boolean {
+    fun deletePool(poolId: String, poolName: String, isOwner: Boolean): Boolean {
+        Timber.i(",,,,,,,, is owner is passed as $isOwner")
         val poolToDelete = mFirebaseDatabaseInstance.collection("users/${currentUser?.uid!!}/pools").document(poolId)
-        val docList = ArrayList<String>()
-        val playersInPoolToDelete = poolToDelete.collection("players").addSnapshotListener { value, error ->
-            for(player in value!!.documents){
-                val playerId = player.get("playerId").toString()
-                mFirebaseDatabaseInstance.collection("users").document(playerId).collection("pools")
-                        .whereEqualTo("poolName", poolName).get().addOnSuccessListener {
-                            for(doc in it.documents){
-                                val id = doc.get("documentId").toString()
-                                mFirebaseDatabaseInstance.collection("users").document(playerId)
-                                        .collection("pools").document(id).delete()
-                            }
-                        }
-            }
-        }
-         poolToDelete.collection("players").addSnapshotListener { snapshot, error ->
-                    if (error == null) {
-                        if (snapshot != null) {
-                            //create a list of items in the player collection
-                            for (item in snapshot) {
-                                //add to list
-                                docList.add(item.id)
-                            }
-
-                        }
+        //Need to only remove from pool if you don't own it
+        if (isOwner) {
+            Timber.i(",,,,,,, is owner was true so the true delete path is fired")
+            val docList = ArrayList<String>()
+            val playersInPoolToDelete = poolToDelete.collection("players").addSnapshotListener { value, error ->
+                if (value != null) {
+                    for (player in value!!.documents) {
+                        val playerId = player.get("playerId").toString()
+                        mFirebaseDatabaseInstance.collection("users").document(playerId).collection("pools")
+                                .whereEqualTo("poolName", poolName).get().addOnSuccessListener {
+                                    for (doc in it.documents) {
+                                        val id = doc.get("documentId").toString()
+                                        mFirebaseDatabaseInstance.collection("users").document(playerId)
+                                                .collection("pools").document(id).delete()
+                                    }
+                                }
                     }
-                }.remove()
-        for (item in docList) {
-            //for each doc id in list, delete it
-            poolToDelete.collection("players").document(item).delete()
-        }
-        poolToDelete.delete()
+                }
+            }
+            poolToDelete.collection("players").addSnapshotListener { snapshot, error ->
+                if (error == null) {
+                    if (snapshot != null) {
+                        //create a list of items in the player collection
+                        for (item in snapshot) {
+                            //add to list
+                            docList.add(item.id)
+                        }
 
-        return true
+                    }
+                }
+            }.remove()
+            for (item in docList) {
+                //for each doc id in list, delete it
+                poolToDelete.collection("players").document(item).delete()
+            }
+            poolToDelete.delete()
+
+            return true
+        } else {
+            //this is a pool that the person is not an owner of, only remove it for them
+            //and remove them from the other pool instances
+            Timber.i(",,,,,,, is owner was false so the false delete path is fired")
+            val docList = ArrayList<String>()
+            val playersInPoolToDelete = poolToDelete.collection("players").addSnapshotListener { value, error ->
+                if (value != null) {
+                    for (player in value.documents) {
+                        val playerId = player.get("playerId").toString()
+                        mFirebaseDatabaseInstance.collection("users").document(playerId).collection("pools")
+                                .whereEqualTo("poolName", poolName).get().addOnSuccessListener {
+                                    for (doc in it.documents) {
+                                        val id = doc.get("documentId").toString()
+                                        val playerInOtherPool = mFirebaseDatabaseInstance.collection("users").document(playerId)
+                                                .collection("pools").document(id).collection("players").whereEqualTo("playerId", currentUser!!.uid)
+                                                .get()
+                                        playerInOtherPool.addOnSuccessListener {
+                                            it.documents.forEach { it.reference.delete() }
+                                        }
+                                    }
+                                }
+                    }
+                }
+            }
+            poolToDelete.collection("players").addSnapshotListener { snapshot, error ->
+                if (error == null) {
+                    if (snapshot != null) {
+                        //create a list of items in the player collection
+                        for (item in snapshot) {
+                            //add to list
+                            docList.add(item.id)
+                        }
+
+                    }
+                }
+            }.remove()
+            for (item in docList) {
+                //for each doc id in list, delete it
+                poolToDelete.collection("players").document(item).delete()
+            }
+            poolToDelete.delete()
+            return true
+        }
     }
 
 
@@ -185,27 +233,27 @@ class FirestoreRepository {
                     val winners = it.documents
                     if(winners.size == 0 ){
                         //go ahead and add
-                            Timber.i("<<<<<<<<<----Right before return @onsuccess size of docs is 0 should add")
+
                     }
                         for(winner in winners) {
                             val week = winner.get("week").toString()
                             val newWeek = winnerData["week"].toString()
                             if(week == newWeek) {
                                 //don't add
-                                Timber.i("<<<<<<<<<----Right before return @onsuccess matching winner was found")
+
                                 return@addOnSuccessListener
                             }
                         }
-                    Timber.i("<<<<<<<<<----Shouldn't see this if @success is just above")
+
                     for(playerId in listOfPlayerIds){
                         val poolRef = getUserPoolsBasePath(playerId)
                         poolRef.get().addOnSuccessListener {
                             val docs = it.documents
-                            Timber.i("<<<<<<<<<<in successfull grab of $playerId s pools doc size is ${docs.size}")
+
                             for(doc in docs){
-                                Timber.i("<<<<<<<<<<<<in document for loop, the get for name = ${doc.get("poolName").toString()} name passed is $poolName")
+
                                 if(doc.get("poolName").toString() == poolName){
-                                    Timber.i("<<<<<<<<<<<in documents found a match for the pool name")
+
                                     val idToAddTo = doc.id
                                     getUserPoolsBasePath(playerId).document(idToAddTo).collection("winners").add(winnerData)
                                 }

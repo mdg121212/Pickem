@@ -5,11 +5,12 @@ import androidx.lifecycle.*
 import com.mattg.pickem.db.Pick
 import com.mattg.pickem.db.repos.ApiCallRepository
 import com.mattg.pickem.db.repos.FirestoreRepository
-import com.mattg.pickem.db.repos.RoomRepo
 import com.mattg.pickem.models.firebase.*
 import com.mattg.pickem.models.iomodels.IOWeekScoresResponse
+import com.mattg.pickem.network.APICallService
 import com.mattg.pickem.utils.Constants
 import com.mattg.pickem.utils.getWinnerByFinalPoints
+import com.mattg.pickem.utils.getWinnerByFinalPointsMoreThanTwo
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -21,7 +22,7 @@ import kotlin.collections.HashMap
 
 class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val roomRepository = RoomRepo(application)
+
     private val apiRepository = ApiCallRepository(application)
     private val repository = FirestoreRepository()
     val user = repository.currentUser!!
@@ -109,15 +110,34 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     private val _winnerName = MutableLiveData<String>()
     val winnerName: LiveData<String> = _winnerName
 
+    private val _weekToCheckWinnerAPI = MutableLiveData<String>()
+    val weekToCheckWinnerApi: LiveData<String> = _weekToCheckWinnerAPI
+
+    fun getWeekToCheckWinnerApi() {
+        APICallService.fetchIOApi().getWeekForCheckingScore(Constants.key).enqueue(object : Callback<String> {
+            override fun onResponse(call: Call<String>, response: Response<String>) {
+                Timber.i("$$$$$ week to check scores from api is ${response.body()}")
+                _weekToCheckWinnerAPI.value = response.body()
+            }
+
+            override fun onFailure(call: Call<String>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
 
     fun setPicks(picks: Pick) {
         _currentSelectedPicks.value = picks
     }
 
+    fun resetWinnerName() {
+        _winnerName.value = null
+    }
+
     fun submitPicks(dateToCheck: String) {
         val currentPicks = currentSelectedPicks.value
         currentPicks?.let {
-            addPicksForUserInPool(it,user.uid, dateToCheck)
+            addPicksForUserInPool(it, user.uid, dateToCheck)
             resetSelectedPicks()
         }
     }
@@ -131,7 +151,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         _currentPoolOwnerName.value = poolOwnerName
     }
 
-    fun resetSelectedPicks() {
+    private fun resetSelectedPicks() {
         _currentSelectedPicks.postValue(null)
     }
 
@@ -139,14 +159,14 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         _areInvites.value = input
     }
 
-    fun deletePool(poolId: String, poolName: String) {
-        if (repository.deletePool(poolId, poolName)) {
+    fun deletePool(poolId: String, poolName: String, isOwner: Boolean) {
+        if (repository.deletePool(poolId, poolName, isOwner)) {
             Timber.i("pool was deleted need to update adapter")
             getUserPools()
         }
     }
 
-    fun setNeedWinners(input: Boolean){
+    fun setNeedWinners(input: Boolean) {
         _needWinners.value = input
     }
 
@@ -203,115 +223,76 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 Timber.i("++++++++firstPlayer is ${firstPlayer.first} with ${firstPlayer.second.second} points")
                 Timber.i("++++++++secondPlayer is ${secondPlayer.first} with ${secondPlayer.second.second} points")
                 val winner =
-                    getWinnerByFinalPoints(firstPlayer.first.first, firstPlayer.second.second,
-                        secondPlayer.first.first, secondPlayer.second.second, finalScore)
+                        getWinnerByFinalPoints(firstPlayer.first.first, firstPlayer.second.second,
+                                secondPlayer.first.first, secondPlayer.second.second, finalScore)
                 //if we get a tie lets see what the names show as
-                if(winner == "TIE") {
+                if (winner == "TIE") {
                     val nameOne = firstPlayer.first.first
                     val nameTwo = secondPlayer.first.first
                     val tiedWinner = "$nameOne and $nameTwo tied!"
-
-                    val data = HashMap<String, Any>()
-                    data["playerId"] = "TIE"
-                    data["playerName"] = tiedWinner
-                    data["week"] = lastWeek
+                    val dataForWinners = HashMap<String, Any>()
+                    dataForWinners["playerId"] = "TIE"
+                    dataForWinners["playerName"] = tiedWinner
+                    dataForWinners["week"] = lastWeek
                     _winnerName.value = tiedWinner
-                   updateWinners(data)
+                    updateWinners(dataForWinners)
                     return
                 }
 
-                for (item in highScoreTiesList){
-                    if (item.first.first.trim() == winner.trim()){
+                for (item in highScoreTiesList) {
+                    if (item.first.first.trim() == winner.trim()) {
 
                         data["playerId"] = item.first.second
                         data["playerName"] = item.first.first
                         data["week"] = lastWeek
 
-                       updateWinners(data)
+                        updateWinners(data)
                         _winnerName.value = item.first.first
                         return
                     }
                 }
 
             }
-            if(highScoreTiesList.size > 2){
-               if(highScoreTiesList.size % 2 == 0){
-                   //list is even number
-                   val newList = filterLargeWinnerTieList(highScoreTiesList, finalScore)
+            if (highScoreTiesList.size > 2) {
+                val winner = getWinnerByFinalPointsMoreThanTwo(highScoreTiesList, finalScore)
+                if (winner.contains("tied!")) {
+                    data["playerId"] = "TIE"
+                    data["playerName"] = winner
+                    data["week"] = lastWeek
+                    updateWinners(data)
+                    _winnerName.value = winner
+                    return
+                }
+                for (item in highScoreTiesList) {
+                    if (item.first.first.trim() == winner.trim()) {
+                        data["playerId"] = item.first.second
+                        data["playerName"] = item.first.first
+                        data["week"] = lastWeek
 
-                   if(newList.size > 2){
-                       val secondNewList = filterLargeWinnerTieList(newList, finalScore)
-                       if(secondNewList.size > 2){
-                           val thirdNewList = filterLargeWinnerTieList(secondNewList, finalScore)
-                       }
-
-                   }
-
-
-
-               } else {
-                   //list is odd number
-                   var indexPlayerOne = 0
-                   var indexPlayerTwo = 1
-                   var playerOne = highScoreTiesList[indexPlayerOne]
-                   var playerTwo = highScoreTiesList[indexPlayerTwo]
-                   var winner = getWinnerByFinalPoints(playerOne.first.first, playerOne.second.second,
-                   playerTwo.first.first, playerTwo.second.second, finalScore)
-
-
-
-               }
+                        updateWinners(data)
+                        _winnerName.value = item.first.first
+                        return
+                    }
+                }
 
             }
         }
 
-    }
-
-    private fun filterLargeWinnerTieList(
-        highScoreTiesList: ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>,
-        finalScore: Int
-    ): ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>> {
-        val newList = ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>()
-        val numberOfPlayers = highScoreTiesList.size - 1
-        var index = 0
-        var indexTwo = 1
-        for (x in 0..numberOfPlayers) {
-            if (indexTwo > numberOfPlayers) {
-                break
-            }
-            val playerOne = highScoreTiesList[index]
-            val playerTwo = highScoreTiesList[indexTwo]
-            val winnerOfRound1 = getWinnerByFinalPoints(
-                playerOne.first.first, playerOne.second.second,
-                playerTwo.first.first, playerTwo.second.second, finalScore
-            )
-            //have the name of the first round winner
-            if (playerOne.first.first == winnerOfRound1) {
-                newList.add(playerOne)
-            } else {
-                newList.add(playerTwo)
-            }
-            index++
-            indexTwo++
-        }
-        return newList
     }
 
     fun filteredGetPicks(poolId: String, filter: String) {
 
-        Timber.i("----------filter is passed as $filter")
         val listOfPicks = ArrayList<PickForDisplay>()
         val picksGotten =
-            repository.getPoolPlayerPicks(user.uid, poolId)
-            .whereEqualTo("week", " " + filter).get()
+                repository.getPoolPlayerPicks(user.uid, poolId)
+                        .whereEqualTo("week", " $filter").get()
                 .addOnSuccessListener {
 
                     Timber.i("--------------inSuccessListener")
                     val picksDocuments = it.documents
                     if (picksDocuments != null) {
-                        Timber.i("--------------inSuccessListener documents are not null size is ${picksDocuments.size}")
                         for (doc in picksDocuments) {
-                            Timber.i("------------------ " + doc.get("week").toString())
+
                             val picktoCopy = PickForDisplay(
                                     doc.get("finalPoints").toString(),
                                     doc.get("picks").toString(),
@@ -319,15 +300,14 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                     doc.get("playerName").toString(),
                                     doc.get("week").toString().trim()
                             )
-                            Timber.i("--------------values for pick -- ${picktoCopy.week} filter -- $filter")
+
                             if (picktoCopy.week == filter.trim()) {
-                                Timber.i("--------------filter matched adding pick ${picktoCopy.week} matched $filter")
                                 //the pick doesn't match the filter, dont add it to the list
                                 listOfPicks.add(picktoCopy)
                             }
 
 
-                            Timber.i("------------------${listOfPicks.size}")
+
                         }
                         //   Timber.i("----------------- $listOfPicks finshed with list of picks, its size is ${listOfPicks.size}}")
                         //   _currentPoolPlayersPicks.value = listOfPicks
@@ -348,12 +328,9 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                     if (picksDocuments != null) {
                         var count = 0
                        for (doc in picksDocuments) {
-                           Timber.i("***************count is $count in for loop")
                             if(doc["week"].toString() == lastWeek && count == 0) {
-                                 Timber.i("**********doc is the first document, and date field is ${doc["dateToCheck"].toString()}")
                                 _dateToCheck.value = doc["dateToCheck"].toString()
                                 count++
-                                Timber.i("***************count is after updating date $count")
                             }
                             val picktoCopy = PickForDisplay(
                                     doc.get("finalPoints").toString(),
@@ -364,7 +341,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                             )
                             listOfPicks.add(picktoCopy)
                         }
-                        Timber.i("======= ${listOfPicks}}")
                         listOfPicks.sortBy { pickForDisplay -> pickForDisplay.week }
                         }
                         _currentPoolPlayersPicks.value = listOfPicks
@@ -502,7 +478,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     fun listenForInvitations(): Boolean {
         var booleanReturn = false
         val listener = repository.listenForInvitations()
-            listener.addSnapshotListener { listener, error ->
+        listener.addSnapshotListener { _, error ->
             if (error != null) {
                 Timber.i(error)
                 return@addSnapshotListener
@@ -697,7 +673,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         data["finalPoints"] = picks.finalPoints
         data["playerId"] = user.uid
         data["playerName"] = user.displayName!!
-        data["dateToPick"] = dateToCheckFromPrefs!!
+        data["dateToCheck"] = dateToCheckFromPrefs!!
 
         val poolId = _currentPool.value.toString()
 
@@ -733,8 +709,8 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun deletePicksFromAllPools(poolId: String, pick: PickForDisplay, filter: String?, lastWeek: String?) {
-        repository.getUserPoolsBasePath(user.uid).document(poolId).get().addOnSuccessListener {
-            val ownerId = it.get("ownerId").toString()
+        repository.getUserPoolsBasePath(user.uid).document(poolId).get().addOnSuccessListener { poolsBasePath ->
+            val ownerId = poolsBasePath.get("ownerId").toString()
             //now have the pool owner id to remove picks from all pools
             val list = _currentPoolPlayers.value!!
             for (item in list) {
@@ -895,32 +871,29 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
     fun checkArePicksForWeek(week: String) : Boolean {
         var returnBool = false
-//        _arePicksForWeek.value = false
+
         val picksRef = repository.getUserPoolsBasePath(user.uid).get()
                 picksRef.addOnSuccessListener {
             val picks = it.documents
             for (doc in picks){
                 val docPoolName = doc["poolName"].toString().trim()
                 val docPoolOwnerName = doc["ownerName"].toString().trim()
-                Timber.i("[[[[[[[[poolname: $docPoolName ownername: $docPoolOwnerName")
-                Timber.i("[[[[[ inside the pools document check")
-                Timber.i("[[[[ ${_currentPoolName.value} is name, ${_currentPoolOwnerName.value} is the owner name going to match those ")
-                if(docPoolName == _currentPoolName.value && docPoolOwnerName == _currentPoolOwnerName.value){
-                    Timber.i("[[[[[  checking for picks, found the doc that matches the pool")
+
+                if(docPoolName == _currentPoolName.value && docPoolOwnerName == _currentPoolOwnerName.value) {
+
                     val id = doc["documentId"].toString()
-                    val checkPicksRef = repository.getUserPoolsBasePath(user.uid)
-                            .document(id).collection("playerPicks").get().addOnSuccessListener {
-                                val picks = it.documents
-                                if(picks.size == 0){
-                                    Timber.i("[[[[[[[ no picks at all in this collection, return false")
+                    repository.getUserPoolsBasePath(user.uid)
+                            .document(id).collection("playerPicks").get().addOnSuccessListener { playerPicks ->
+                                val poolPicks = playerPicks.documents
+                                if (poolPicks.size == 0) {
+
                                     _arePicksForWeek.value = false
-                                  return@addOnSuccessListener
+                                    return@addOnSuccessListener
                                 }
 
-                                for(pick in picks){
+                                for (pick in poolPicks) {
                                     val pickWeek = pick["week"].toString().trim()
-                                    if(pickWeek == week.trim() ){
-                                        Timber.i("[[[[[[[found one pick that matches the week, should return true")
+                                    if (pickWeek == week.trim()) {
                                         _arePicksForWeek.value = true
                                         returnBool = true
 
@@ -943,37 +916,28 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun checkIfNeedWinner(week: String){
-        val weekInt = week.filter { it.isDigit() }.trim().toInt()
+        //   val weekInt = week.filter { it.isDigit() }.trim().toInt()
         val picksRef = repository.getUserBaseCollection(user.uid).collection("pools")
                 .document(_currentPool.value!!).collection("winners").get()
         picksRef.addOnSuccessListener {
-            var winners: Int = 0
+            var winners = 0
             if(it.documents.isEmpty()){
-                Timber.i("[[[[[[[[[[documents checking winner were empty, need to try for a winner should return, no more [[[ logs")
-
 //                val arePicksForWeek = checkArePicksForWeek(week)
-
                 val needPicks = _arePicksForWeek.value
-                Timber.i("[[[[[[  inside the need a winner function, are there weekly picks is returning $needPicks")
-                Timber.i("[[[[[[   the live data variable is being updated as $needPicks")
                 _needWinners.value = true
                 return@addOnSuccessListener
             }
             for(doc in it.documents){
                 if(doc["week"].toString().trim() == week.trim()){
                     winners++
-                    Timber.i("[[[[[[[[[[[[FOUND MATCHING WINNER ADDING TO WINNERS INT it is now: $winners")
                 }
             }
-            Timber.i("[[[[[[[winners value ultimately is $winners, if zero that means no winners were found and it will continue to get one")
             _needWinners.value = winners <= 0
-            Timber.i("[[[[[[[[ need winners value is ${needWinners.value}")
         }
-        Timber.i("[[[[[[[[ need winners value is ${needWinners.value}")
     }
 
     fun decideWinner(weekFilter: String, poolId: String, finalScore: Int) {
-        Timber.i("-------decide winner called")
+
         // getScoresForWeek(11)   //testing a variable here need to pass the Week 11 eleven part
         //  retrievePicksForScore(poolId)
         val retrievedPicks = ArrayList<HashMap<String, String>>()
@@ -981,7 +945,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 .document(poolId).collection("playerPicks").get()
 
         picksRef.addOnSuccessListener {
-            Timber.i("-------In on success listner for retrieving picks to see who won, doc count is :  ${it.documents.size}")
+
             val picks = it.documents
             for (pick in picks) {
                 val pickString = pick.getString("picks")
@@ -996,19 +960,19 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 retrievedPick["playerId"] = playerId!!
                 retrievedPick["week"] = week!!
                 retrievedPick["playerName"] = playerName!!
-                Timber.i("--------- retrieved pick is week:${retrievedPick["week"].toString()} points: ${retrievedPick["points"].toString()}  picks: ${retrievedPick["picks"].toString()} ")
-                retrievedPicks.add(retrievedPick)
+
+                if (retrievedPick["week"].toString() == weekFilter) {
+                    retrievedPicks.add(retrievedPick)
+                }
+//                retrievedPicks.add(retrievedPick)
             }
             _picksForScore.value = retrievedPicks
 
-            Timber.i("-----picksForScore value is : ${_picksForScore.value} size: ${_picksForScore.value!!.size}")
         }
         picksRef.addOnCompleteListener {
             val leaguePicksList = _picksForScore.value
             val winningScoreToCheck = _finalScoresFromWeek.value
             val scrambledAlternateList = _retrievedWinningTeams.value
-
-            Timber.i("-----------in on complete listener picksForScore value is ${_picksForScore.value}")
 
             if (_picksForScore.value != null) {
                 val list = _picksForScore.value
@@ -1016,35 +980,28 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 if (list != null) {
                     for (item in list) {
                         if (item["week"].toString().trim() == weekFilter.trim()) {
-                            Timber.i("-----------made it to where a pick matches the week")
                             finalList.add(item)
                         }
                     }
                 }
 
-                Timber.i("----------Final list value/size is ${finalList.size} if this is zero, update something to show" +
-                        "that no items for the week were found")
                 val scores = _finalScoresFromWeek.value
                 val finalPoints = finalScore
                 val scoreString = winningScoreToCheck?.first
 
-
-                Timber.i("------scoreString retrieved from backend is $scoreString")
-
                 val playerScoresList = ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>()
-                Timber.i("----final score is $finalPoints, and the winning string = $scoreString")
+
 
                 if (leaguePicksList != null) {
                     for (item in leaguePicksList) {
-                        val playerId = item["playerId"].toString().trim()
-                        val playerName = item["playerName"].toString().trim()
+//                        val playerId = item["playerId"].toString().trim()
+//                        val playerName = item["playerName"].toString().trim()
                         val picksString = item["picks"].toString().trim()
                         val picksPoints = item["points"].toString().trim().toInt()
                         val picksStringEdited = picksString.removePrefix("[").removeSuffix("]")
                         val onlyChars = picksStringEdited.replace(",", "")
-                        Timber.i("-----only chars  = $onlyChars")
+
                         val teamArray = onlyChars.split(" ") as ArrayList<String>
-                        Timber.i("-------team array is $teamArray")
 
                         //NOW THE TEAMS ARRAYS ARE EQUIVALENT, LOOP THROUGH THE WINNING TEAMS ARRAY AND COMPARE
                         //MATCHES WITH A COUNTER
@@ -1054,8 +1011,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                 count++
                             }
                         }
-
-                        Timber.i("+++++++count should be number correct: $playerId 's count is $count")
 
                         val numberCorrect = count
                         val name = item["playerName"].toString().trim()
@@ -1071,7 +1026,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    fun updateWinners(data: HashMap<String, Any>) {
+    private fun updateWinners(data: HashMap<String, Any>) {
         val ids = ArrayList<String>()
         val listToGetIdsFrom = _currentPoolPlayers.value!!
         for (player in listToGetIdsFrom) {

@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
+@Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = ApiCallRepository(application)
@@ -69,6 +70,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _currentDate = MutableLiveData<Date>()
     private val _currentYear = MutableLiveData<Int>()
+
+    private val _apiCallErrorMessage = MutableLiveData<String>()
+    val apiCallErrorMessage: LiveData<String> = _apiCallErrorMessage
 
     private val _scheduleResult = MutableLiveData<IOScheduleReponse>()
     val scheduleResult: LiveData<IOScheduleReponse> = _scheduleResult
@@ -136,15 +140,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun retrievePicksFromDatabase() {
         viewModelScope.launch {
             _picksFromDatabase.value = roomRepository.getListOfPicks()
-            Timber.i("[[[[[[in viewModel value of live data is ${_picksFromDatabase.value}")
         }
     }
 
     fun retrievePicksFromDatabaseForSubmit(week: String) {
         viewModelScope.launch {
-
             _picksFromDatabase.value = roomRepository.getPicksForSubmit(week.trim())
-
         }
     }
 
@@ -185,46 +186,55 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun setUpPickSheet() {
         val returnList = ArrayList<Game>()
         val resultWeek = _listOfGamesByWeek.value
-        val weekToSave: Int
-        if (resultWeek != null) {
-            var count = 0
-            weekToSave = resultWeek[0].week!!
-            for (item in resultWeek) {
-                count++
-                //create detail string
-                Timber.i("TESTING============day = ${item.day}")
-                //var detailString = "${item.dateTime}"
-                val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-                val formatter = SimpleDateFormat("EE, MMM yyyy", Locale.US)
-                val formattedDate = formatter.format(parser.parse(item.dateTime))
-                //create a game object
-                val newGame = Game(
-                        item.homeTeam!!,
-                        item.awayTeam!!,
-                        getImageFromTeam(item.homeTeam!!),
-                        getImageFromTeam(item.awayTeam!!),
-                        count,
-                        formattedDate,
-                        item.dateTime!!
-                )
-                Log.i("TEST", "${newGame.homeTeam}, ${newGame.awayTeam}, GAME ${newGame.game}")
-                //add to list for return value
-                returnList.add(newGame)
-                returnList.sortBy { it.dateTime }
-                //set live data value
-            }
-            _teamsAndImages.postValue(returnList)
-            _dateToCheckWinner.value = returnList.last().dateTime
-            setGameCount(count)
+        val weekToSave: Int?
+        if (resultWeek?.size!! > 0) {
+            if (resultWeek != null) {
+                var count = 0
+                weekToSave = resultWeek[0].week
 
 
-            val forDatabase = DatabaseConverters.fromValuesToString(returnList)
-            if (forDatabase != null) {
-                Timber.i("TESTING==================for database not null saving after this")
-                saveMatchupsToDatabase(forDatabase, weekToSave)
+                for (item in resultWeek) {
+                    count++
+                    //create detail string
+                    Timber.i("TESTING============day = ${item.day}")
+                    //var detailString = "${item.dateTime}"
+                    val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+                    val formatter = SimpleDateFormat("EE, MMM yyyy", Locale.US)
+                    val formattedDate = formatter.format(parser.parse(item.dateTime))
+                    //create a game object
+                    val newGame = Game(
+                            item.homeTeam!!,
+                            item.awayTeam!!,
+                            getImageFromTeam(item.homeTeam!!),
+                            getImageFromTeam(item.awayTeam!!),
+                            count,
+                            formattedDate,
+                            item.dateTime!!
+                    )
+                    Log.i("TEST", "${newGame.homeTeam}, ${newGame.awayTeam}, GAME ${newGame.game}")
+                    //add to list for return value
+                    returnList.add(newGame)
+                    returnList.sortBy { it.dateTime }
+                    //set live data value
+                }
+                _teamsAndImages.postValue(returnList)
+                _dateToCheckWinner.value = returnList.last().dateTime
+                setGameCount(count)
+
+
+                val forDatabase = DatabaseConverters.fromValuesToString(returnList)
+                if (forDatabase != null) {
+                    Timber.i("TESTING==================for database not null saving after this")
+                    if (weekToSave != null) {
+                        saveMatchupsToDatabase(forDatabase, weekToSave)
+                    }
+                }
+                setShowSpinner(false)
+                Timber.i(" TEAMS AND IMAGES VALUE = ${_teamsAndImages.value}")
             }
-            setShowSpinner(false)
-            Timber.i(" TEAMS AND IMAGES VALUE = ${_teamsAndImages.value}")
+        } else {
+            Timber.i("couldn't get picks")
+            _apiCallErrorMessage.postValue("There was a network issue, try again later.")
         }
     }
 

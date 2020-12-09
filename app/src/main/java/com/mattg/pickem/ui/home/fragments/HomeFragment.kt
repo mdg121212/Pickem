@@ -11,10 +11,7 @@ import androidx.navigation.fragment.findNavController
 import com.mattg.pickem.R
 import com.mattg.pickem.models.general.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
-import com.mattg.pickem.utils.BaseFragment
-import com.mattg.pickem.utils.SharedPrefHelper
-import com.mattg.pickem.utils.formatForPickDatabase
-import com.mattg.pickem.utils.getDate
+import com.mattg.pickem.utils.*
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_home.*
 import kotlinx.coroutines.CoroutineScope
@@ -140,17 +137,16 @@ class HomeFragment : BaseFragment() {
     }
 
 
-    private fun handleDate(){
+    private fun handleDate() {
         //calender instance with get first field retrieves the correct year
         val calender = Calendar.getInstance()
         val year = calender.get(1)
-        val hour = calender.get(Calendar.HOUR)
-        val minute = calender.get(Calendar.MINUTE)
-        val dow = calender.get(Calendar.DAY_OF_WEEK)
-        val day = calender.get(Calendar.DATE)
-        val time = calender.time
+//        val hour = calender.get(Calendar.HOUR)
+//        val minute = calender.get(Calendar.MINUTE)
+//        val dow = calender.get(Calendar.DAY_OF_WEEK)
+//        val day = calender.get(Calendar.DATE)
+//        val time = calender.time
 
-        Timber.i("[[[[[[[[   vars from calender, hour: $hour, minute: $minute, time: $time dow: $dow, date: $day")
         checkDate(getDate(), year)
     }
 
@@ -162,7 +158,7 @@ class HomeFragment : BaseFragment() {
         SharedPrefHelper.addLastOrCurrentWeekToPrefs(requireContext(), week.second)
 
         homeViewModel.setDate(date, year)
-        Timber.i("Home ViewModel upcoming week value is = ${homeViewModel.upcomingWeek.value}")
+
     }
     private fun checkGameCount() {
         homeViewModel.gameCount.observe(viewLifecycleOwner) {
@@ -303,15 +299,24 @@ class HomeFragment : BaseFragment() {
         }
         homeViewModel.dateToCheckWinner.observe(viewLifecycleOwner){
             if (!it.isNullOrEmpty()){
-                Toast.makeText(requireContext(), "Date for checking winner is $it", Toast.LENGTH_SHORT ).show()
+
                 SharedPrefHelper.addDateToCheckToPrefs(requireContext(), it, weekToCheck!!)
                 Timber.i("[[[[[[ just added $it to shared prefs as date to check winner need to delete this when actually choosing the winner")
             }
         }
-        homeViewModel.showSpinner.observe(viewLifecycleOwner){
-            when(it){
-                true -> { showFootBallSpinner() }
-                    false -> { hideFootballSpinner() }
+        homeViewModel.showSpinner.observe(viewLifecycleOwner) {
+            when (it) {
+                true -> {
+                    showFootBallSpinner()
+                }
+                false -> {
+                    hideFootballSpinner()
+                }
+            }
+        }
+        homeViewModel.apiCallErrorMessage.observe(viewLifecycleOwner) {
+            if (it.isNotEmpty()) {
+                requireContext().shortToast(it)
             }
         }
     }

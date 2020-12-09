@@ -13,7 +13,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.detailui.ViewPicksFragment">
+        tools:context=".ui.detailui.ViewPicksFragment"
+        android:layout_marginBottom="75dp">
 
         <TextView
             android:id="@+id/tv_view_picks_title"
