@@ -384,37 +384,36 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }
             date.before(weeksArray[10].startDate) && date.after(weeksArray[9].startDate) || date == weeksArray[10].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(10)
-                val weekString = setWeek(11)
+                val weekString = setUpcomingWeek(11)
                 return Pair(weekString, lastWeekString)
             }
             date.before(weeksArray[11].startDate) && date.after(weeksArray[10].startDate) || date == weeksArray[11].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(11)
-                val weekString = setWeek(12)
+                val weekString = setUpcomingWeek(12)
                 return Pair(weekString, lastWeekString)
             }
             date.before(weeksArray[12].startDate) && date.after(weeksArray[11].startDate) || date == weeksArray[12].startDate && date.time <= weeksArray[1].startDate.time -> {
                 val lastWeekString = setWeek(12)
-                val weekString = setWeek(13)
+                val weekString = setUpcomingWeek(13)
                 return Pair(weekString, lastWeekString)
             }
             date.before(weeksArray[13].startDate) && date.after(weeksArray[12].startDate) || date == weeksArray[13].startDate && date.time <= weeksArray[1].startDate.time -> {
-
+                val weekString = setUpcomingWeek(14)
                 val lastWeekString = setWeek(13)
-                val weekString = setWeek(14)
                 return Pair(weekString, lastWeekString)
             }
             date.before(weeksArray[14].startDate) && date.after(weeksArray[13].startDate) || date == weeksArray[14].startDate && date.time <= weeksArray[1].startDate.time -> {
-                val weekString = setWeek(15)
+                val weekString = setUpcomingWeek(15)
                 val lastWeekString = setWeek(14)
                 return Pair(weekString, lastWeekString)
             }
             date.before(weeksArray[15].startDate) && date.after(weeksArray[14].startDate) || date == weeksArray[15].startDate && date.time <= weeksArray[1].startDate.time -> {
-                val weekString = setWeek(16)
+                val weekString = setUpcomingWeek(16)
                 val lastWeekString = setWeek(15)
                 return Pair(weekString, lastWeekString)
             }
             date.before(weeksArray[16].startDate) && date.after(weeksArray[15].startDate) || date == weeksArray[16].startDate && date.time <= weeksArray[1].startDate.time -> {
-                val weekString = setWeek(17)
+                val weekString = setUpcomingWeek(17)
                 val lastWeekString = setWeek(16)
                 return Pair(weekString, lastWeekString)
             }
@@ -528,10 +527,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun setWeek(input: Int): String {
+        val titleText = "Week $input"
+        return titleText
+    }
+
+    private fun setUpcomingWeek(input: Int): String {
         _upcomingWeek.value = input
         val titleText = "Week $input"
         _text.value = titleText
-
         return titleText
     }
 

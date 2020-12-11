@@ -48,8 +48,10 @@ class PoolDetailFragment : BaseFragment() {
 
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         poolViewModel = ViewModelProvider(requireActivity()).get(PoolViewModel::class.java)
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_pool_detail, container, false)
@@ -60,6 +62,8 @@ class PoolDetailFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext()).toString()
+        Timber.i(",,,,,,,,,,,,,,current week in pools from prefs is $currentWeek")
+
         lastWeek = SharedPrefHelper.getLastOrCurrentWeekFromPrefs(requireContext()).toString()
         timeForWinners = SharedPrefHelper.getDateToCheckFromPrefs(requireContext()).toString()
         poolViewModel.getWeekToCheckWinnerApi()
@@ -193,7 +197,8 @@ class PoolDetailFragment : BaseFragment() {
                 showPlayersRecycler()
             }
             val userAdapter = InviteAdapter(requireContext(), list, inviteClickListener)
-            val userLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            val userLayoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             recycler.apply {
                 layoutManager = userLayoutManager
                 adapter = userAdapter
@@ -260,12 +265,16 @@ class PoolDetailFragment : BaseFragment() {
 
             if (timeForWinners != "null") {
                 val checkDate = formatter.parse(timeForWinners)
-                val nowDate = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    Date.from(Instant.now())
-                } else {
-                    TODO("VERSION.SDK_INT < O")
-                }
-                if (nowDate.hours == checkDate?.hours?.plus(5) && nowDate.date == checkDate.date || nowDate.after(checkDate)) {
+                val nowDate =
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        Date.from(Instant.now())
+                    } else {
+                        TODO("VERSION.SDK_INT < O")
+                    }
+                if (nowDate.hours == checkDate?.hours?.plus(5) && nowDate.date == checkDate.date || nowDate.after(
+                        checkDate
+                    )
+                ) {
                     poolViewModel.getWeekToCheckWinnerApi()
                     poolViewModel.weekToCheckWinnerApi.observe(viewLifecycleOwner) { week ->
                         if (week != null) {
@@ -279,7 +288,10 @@ class PoolDetailFragment : BaseFragment() {
 
                     poolViewModel.winnerName.observe(viewLifecycleOwner) { name ->
                         if (name != null) {
-                            val action = PoolDetailFragmentDirections.actionPoolDetailFragmentToWinnerSplashFragment(name)
+                            val action =
+                                PoolDetailFragmentDirections.actionPoolDetailFragmentToWinnerSplashFragment(
+                                    name
+                                )
                             findNavController().navigate(action)
                             poolViewModel.resetWinnerName()
 
@@ -318,7 +330,8 @@ class PoolDetailFragment : BaseFragment() {
     private fun populateWinnersRecycler(winnerList: ArrayList<WinnerItem>?) {
         val recycler = rv_winners
         winnersAdapter = winnerList?.let { WinnersAdapter(requireContext(), it) }!!
-        val winnersLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        val winnersLayoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         recycler.apply {
             adapter = winnersAdapter
             layoutManager = winnersLayoutManager
@@ -347,7 +360,8 @@ class PoolDetailFragment : BaseFragment() {
             }
 
             val poolPlayersAdapter = PoolPlayerListAdapter(requireContext(), list, clickListener)
-            val poolPlayersLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+            val poolPlayersLayoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             recycler.apply {
                 layoutManager = poolPlayersLayoutManager
                 adapter = poolPlayersAdapter
@@ -376,7 +390,11 @@ class PoolDetailFragment : BaseFragment() {
             R.id.mnu_submit_picks -> {
 
                 val action = PoolDetailFragmentDirections
-                        .actionPoolDetailFragmentToCurrentList(true, tv_pool_detail_title.text.toString(), currentWeek)
+                    .actionPoolDetailFragmentToCurrentList(
+                        true,
+                        tv_pool_detail_title.text.toString(),
+                        currentWeek
+                    )
                 findNavController().navigate(action)
             }
             R.id.mnu_view_all_picks -> {
