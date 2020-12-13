@@ -405,6 +405,7 @@ class HomeFragment : BaseFragment() {
                 handleDate()
                 homeViewModel.clearMatchups()
                 homeViewModel.resetHomeScreen()
+                findNavController().navigate(R.id.action_navigation_home_self)
             }
 
             R.id.home_settings -> findNavController().navigate(R.id.action_navigation_home_to_settingsFragment)

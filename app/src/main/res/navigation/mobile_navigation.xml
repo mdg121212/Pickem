@@ -30,10 +30,13 @@
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/slide_down"
             app:popEnterAnim="@anim/fade_in"
-            app:popExitAnim="@anim/slide_up"/>
+            app:popExitAnim="@anim/slide_up" />
         <action
             android:id="@+id/action_navigation_home_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_navigation_home_self"
+            app:destination="@id/navigation_home" />
     </fragment>
 
     <fragment
@@ -203,6 +206,9 @@
             android:name="action"
             app:argType="integer"
             android:defaultValue="0" />
+        <action
+            android:id="@+id/action_poolPlayersPicksFragment_self"
+            app:destination="@id/poolPlayersPicksFragment" />
     </fragment>
     <fragment
         android:id="@+id/winnerSplashFragment"
@@ -221,5 +227,5 @@
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.mattg.pickem.ui.detailui.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:label="Settings" />
 </navigation>

@@ -714,8 +714,10 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
             //now have the pool owner id to remove picks from all pools
             val list = _currentPoolPlayers.value!!
             for (item in list) {
+
                 Timber.i("----------Inside current pool players list, player is ${item.name} id is ${item.userId}")
                 val id = item.userId
+
                 repository.getUserPoolsBasePath(id).whereEqualTo("ownerId", ownerId).get().addOnSuccessListener { pools ->
                     val documents = pools.documents
                     for (doc in documents) {
@@ -724,23 +726,35 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                 .whereEqualTo("picks", pick.picks)
                                 .whereEqualTo("week", pick.week)
                                 .whereEqualTo("finalPoints", pick.finalPoints)
-                                .whereEqualTo("playerId", user.uid)
-                                .get().addOnSuccessListener {
-                                    for (document in it.documents) {
-                                        val deleteId = document.id
-                                        repository.getUserPoolsBasePath(id).document(documentId).collection("playerPicks")
-                                                .document(deleteId).delete()
-                                        Timber.i("------------just deleted")
-                                    }
-                                }
+                                .whereEqualTo("playerId", pick.playerId)
+                                .get()
+
+
+                        deleting.addOnSuccessListener {
+
+                            Timber.i("------------On Success got player picks where equal to to delete doc size is ${it.documents.size}")
+                            for (document in it.documents) {
+                                val deleteId = document.id
+                                Timber.i("------------deleteId = $deleteId")
+                                repository.getUserPoolsBasePath(id).document(documentId).collection("playerPicks")
+                                        .document(deleteId).delete()
+                                Timber.i("------------just deleted")
+                            }
+                        }.addOnFailureListener {
+                            Timber.i("------------Failed to get to delete")
+                        }
 
                         deleting.addOnCompleteListener {
+                            Timber.i("------------Deleting is on complete getting regular list")
                             if (lastWeek != null) {
                                 getPoolPicks(poolId, lastWeek)
                             }
                             Timber.i("------------Before filter getting regular list")
 
 
+                        }
+                        deleting.addOnFailureListener {
+                            Timber.i("------------failed delete")
                         }
                     }
                 }

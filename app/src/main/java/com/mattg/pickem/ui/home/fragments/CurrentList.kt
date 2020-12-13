@@ -1,5 +1,6 @@
 package com.mattg.pickem.ui.home.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,7 +18,6 @@ import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
 import com.mattg.pickem.utils.BaseFragment
 import com.mattg.pickem.utils.PicksClickListener
-import com.mattg.pickem.utils.shortToast
 import kotlinx.android.synthetic.main.fragment_current_list.*
 
 class CurrentList : BaseFragment() {
@@ -28,6 +28,7 @@ class CurrentList : BaseFragment() {
     private val args: CurrentListArgs by navArgs()
     private var wasFromDetail: Boolean? = null
     private var week: String? = null
+    private var picksText: String = ""
 
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?,
@@ -80,14 +81,17 @@ class CurrentList : BaseFragment() {
     }
 
     private fun setUpRecycler(picks: List<Pick>?) {
-        val recyler = rv_saved_picks
+        val recycler = rv_saved_picks
         clickListener = PicksClickListener { pick, _, option ->
             when (option) {
-                1 -> showPicksOptionsDialog(pick)
+                1 -> {
+                    picksText = "${pick.week} \nPicks: ${pick.picksGamesOnly} \nLast Game Points: ${pick.finalPoints} "
+                    showPicksOptionsDialog(pick)
+                }
             }
         }
-        recyler.adapter = picks?.let { SavedPicksAdapter(requireContext(), it, clickListener) }
-        recyler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        recycler.adapter = picks?.let { SavedPicksAdapter(requireContext(), it, clickListener) }
+        recycler.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
     }
 
     private fun showPicksOptionsDialog(picks: Pick) {
@@ -110,7 +114,20 @@ class CurrentList : BaseFragment() {
 
                 MaterialAlertDialogBuilder(requireContext()).setTitle("Options")
                         .setPositiveButton("Send Picks") { _, _ ->
-                            requireContext().shortToast("ADD EMAIL/TEXT SEND CAPABILITY")
+                            if (picksText != "") {
+                                val sendIntent: Intent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, picksText)
+                                    type = "text/plain"
+                                }
+                                val shareIntent = Intent.createChooser(sendIntent, null)
+                                startActivity(shareIntent)
+                                picksText = ""
+                            } else {
+                                Toast.makeText(requireContext(), "Picks text was empty", Toast.LENGTH_SHORT).show()
+                            }
+
+
                         }
                         .setNeutralButton("Cancel") { dialog, _ ->
                             dialog.dismiss()
