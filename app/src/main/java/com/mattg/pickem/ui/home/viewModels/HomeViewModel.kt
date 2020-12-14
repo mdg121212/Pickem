@@ -527,8 +527,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun setWeek(input: Int): String {
-        val titleText = "Week $input"
-        return titleText
+        return "Week $input"
     }
 
     private fun setUpcomingWeek(input: Int): String {

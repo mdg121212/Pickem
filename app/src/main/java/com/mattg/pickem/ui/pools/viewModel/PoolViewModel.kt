@@ -19,7 +19,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
-
+@SuppressWarnings("unused")
 class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
 
@@ -808,13 +808,13 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
                 Timber.i("[[[[[[[[[[[[[[[in get scores, result = $result")
                 if (result != null) {
-                    //empty lists to populate with winner items
+
                     /**
                      * The first list, winningTeams would work well if the free api data wasn't scrambled.
                      * Because it is, the scores are irrelevant and for practical testing the final score
-                     * will have to be added manually, and the second list winningTeamsStringsOnly will
-                     * be referenced for the winners along with the input number.
+                     * will have to be added manually.
                      */
+                    //empty lists to populate with winner items
                     val winningTeams = ArrayList<Triple<String, String, String>>()
                     val winningTeamsStringsOnly = ArrayList<String>()
 
@@ -1008,15 +1008,12 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (leaguePicksList != null) {
                     for (item in leaguePicksList) {
-//                        val playerId = item["playerId"].toString().trim()
-//                        val playerName = item["playerName"].toString().trim()
                         val picksString = item["picks"].toString().trim()
                         val picksPoints = item["points"].toString().trim().toInt()
                         val picksStringEdited = picksString.removePrefix("[").removeSuffix("]")
                         val onlyChars = picksStringEdited.replace(",", "")
 
                         val teamArray = onlyChars.split(" ") as ArrayList<String>
-
                         //NOW THE TEAMS ARRAYS ARE EQUIVALENT, LOOP THROUGH THE WINNING TEAMS ARRAY AND COMPARE
                         //MATCHES WITH A COUNTER
                         var count = 0
@@ -1025,7 +1022,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                                 count++
                             }
                         }
-
                         val numberCorrect = count
                         val name = item["playerName"].toString().trim()
                         val id = item["playerId"].toString().trim()

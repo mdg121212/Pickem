@@ -355,6 +355,7 @@ class HomeFragment : BaseFragment() {
 
     private fun getMatchupsForDifferentWeek(week: Int){
         homeViewModel.setShowSpinner(true)
+        tv_home_title.text = "Week $week"
         CoroutineScope(Dispatchers.IO).launch {
             homeViewModel.getMatchupsFiltered(week)
         }
