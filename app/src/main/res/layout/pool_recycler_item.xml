@@ -4,9 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-<variable
-    name="pool"
-    type="com.mattg.pickem.models.firebase.Pool" />
+
+        <variable
+            name="pool"
+            type="com.mattg.pickem.models.firebase.Pool" />
+
+        <variable
+            name="parsepool"
+            type="com.mattg.pickem.parsebackend.models.ParsePool" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -53,7 +58,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
                     android:layout_marginEnd="16dp"
-                    android:text="@{pool.poolName}"
+                    android:text="@{parsepool.poolName}"
                     android:textAlignment="center"
                     android:textSize="18sp"
                     android:textStyle="bold"

@@ -11,16 +11,31 @@ object APICallService {
     private const val IO_BASE_URL = "https://api.sportsdata.io/v3/nfl/scores/json/"
     private const val RSS_BASE_URL = "https://www.espn.com/espn/rss/nfl/"
     private const val RSS_JSON_CONVERTED = "https://feed2json.org/"
+    private const val PARSE_BASE_URL = "https://parseapi.back4app.com/"
 //    //5mb cache
 //    private val cacheSize = (5 * 1024 * 1024).toLong()
 //    //cache variable
 //    val myCache = Cache(context.cacheDir, cacheSize)
 
-    private var ioApi: SportsDataApi ?= null
-    private var rssApi: RSSApi ?= null
+    private var ioApi: SportsDataApi? = null
+    private var rssApi: RSSApi? = null
+    private var parseApi: ParseApi? = null
+
+    private fun getParseApi(): ParseApi {
+        if (parseApi == null) {
+            val okHttpClient = OkHttpClient.Builder()
+            parseApi = Retrofit.Builder()
+                .baseUrl(PARSE_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient.build())
+                .build()
+                .create(ParseApi::class.java)
+        }
+        return parseApi!!
+    }
 
     private fun getRssApi(): RSSApi {
-        if(rssApi == null){
+        if (rssApi == null) {
             val okHttpClient = OkHttpClient.Builder()
             rssApi = Retrofit.Builder()
                 .baseUrl(RSS_JSON_CONVERTED)
@@ -59,6 +74,8 @@ object APICallService {
         }
         return ioApi!!
     }
+
+    fun fetchParseApi() = getParseApi()
 
     fun fetchIOApi() = getSportsIOApiCall()
 

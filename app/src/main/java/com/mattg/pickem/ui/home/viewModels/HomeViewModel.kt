@@ -151,13 +151,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun callApiForMatchups(year: Int, week: Int, wasFiltered: Boolean) {
         val listToReturn = ArrayList<IOScoresResponse.IOScoresResponseItem>()
-        repository.getApiService().getScoresByWeek(year, week, Constants.key).enqueue(object : Callback<IOScoresResponse> {
+        repository.getApiService().getScoresByWeek(year, week, Constants.key).enqueue(object :
+            Callback<IOScoresResponse> {
             override fun onResponse(
-                    call: Call<IOScoresResponse>,
-                    response: Response<IOScoresResponse>
+                call: Call<IOScoresResponse>,
+                response: Response<IOScoresResponse>
             ) {
                 val responseData = response.body()
-
+                Timber.i("$responseData")
                 if (responseData != null) {
                     for (item in responseData) {
                         if (item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE" && item.canceled != true) {

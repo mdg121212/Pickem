@@ -3,6 +3,7 @@ package com.mattg.pickem.utils
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
+import com.parse.Parse
 import timber.log.Timber
 import java.util.*
 
@@ -20,6 +21,16 @@ class PickemApplication: Application() {
             Timber.i("*******mode = $mode")
             AppCompatDelegate.setDefaultNightMode(mode.value)
         }
+
+        Parse.initialize(
+            Parse.Configuration.Builder(this)
+                .applicationId("eg4nAdShJCVsRjT7QCyoA3ohlSOfxq7rhEsvquqD")
+                .clientKey("mKiBRFdZI2136yMFZnvwSEFcbyfefMX9VhOV5RYG")
+                .server("https://parseapi.back4app.com")
+                .build()
+        )
+
+
     }
 
 

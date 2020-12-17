@@ -2,12 +2,14 @@ package com.mattg.pickem.ui.home.fragments
 
 import android.animation.ObjectAnimator
 import android.app.Dialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.*
 import androidx.core.view.get
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.mattg.pickem.LoginActivityParse
 import com.mattg.pickem.R
 import com.mattg.pickem.models.general.Game
 import com.mattg.pickem.ui.home.viewModels.HomeViewModel
@@ -103,6 +105,11 @@ class HomeFragment : BaseFragment() {
         button_picks.setOnClickListener {
             setPicksButtonFunction()
         }
+
+        floatingActionButton.setOnClickListener {
+            val intent = Intent(requireContext(), LoginActivityParse::class.java)
+            startActivity(intent)
+        }
     }
 
 
@@ -141,12 +148,6 @@ class HomeFragment : BaseFragment() {
         //calender instance with get first field retrieves the correct year
         val calender = Calendar.getInstance()
         val year = calender.get(1)
-//        val hour = calender.get(Calendar.HOUR)
-//        val minute = calender.get(Calendar.MINUTE)
-//        val dow = calender.get(Calendar.DAY_OF_WEEK)
-//        val day = calender.get(Calendar.DATE)
-//        val time = calender.time
-
         checkDate(getDate(), year)
     }
 

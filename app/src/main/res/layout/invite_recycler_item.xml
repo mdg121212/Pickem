@@ -4,9 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-<variable
-    name="invitation"
-    type="com.mattg.pickem.models.firebase.Invite" />
+
+        <variable
+            name="invitation"
+            type="com.mattg.pickem.models.firebase.Invite" />
+
+        <variable
+            name="parseinvitation"
+            type="com.mattg.pickem.parsebackend.models.ParseInvite" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -39,18 +44,18 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="32dp"
                     android:layout_marginTop="16dp"
-                    android:text="@{invitation.sender}"
+                    android:text="@{parseinvitation.sender}"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="Name" />
 
                 <TextView
-                    android:id="@+id/tv_invite_sender_email"
+                    android:id="@+id/tv_invite_pool_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp"
-                    android:text="@{invitation.senderEmail}"
+                    android:text="@{parseinvitation.poolName}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/tv_invite_sender_name"
                     app:layout_constraintTop_toBottomOf="@+id/tv_invite_sender_name"

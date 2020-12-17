@@ -73,7 +73,7 @@
     <string name="espn_nfl_nation">ESPN (NFL Nation)</string>
     <string name="pro_football_network">Pro Football Network</string>
     <string name="new_york_times_nfl">New York Times NFL</string>
-     <!--Night Mode Strings-->
+    <!--Night Mode Strings-->
     <string name="pref_key_night" translatable="false">key_night_mode</string>
     <string name="pref_night_title">Night mode</string>
     <string name="pref_night_summary">Select a dark or light theme.</string>

@@ -4,9 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-<variable
-    name="user"
-    type="com.mattg.pickem.models.firebase.User" />
+
+        <variable
+            name="user"
+            type="com.mattg.pickem.models.firebase.User" />
+
+        <variable
+            name="parseuser"
+            type="com.parse.ParseUser" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -40,7 +45,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="32dp"
                     android:layout_marginTop="16dp"
-                    android:text="@{user.name}"
+                    android:text="@{parseuser.username}"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="Name" />
@@ -51,7 +56,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp"
-                    android:text="@{user.email}"
+                    android:text="@{parseuser.email}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="@+id/tv_invite_sender_name"
                     app:layout_constraintTop_toBottomOf="@+id/tv_invite_sender_name"

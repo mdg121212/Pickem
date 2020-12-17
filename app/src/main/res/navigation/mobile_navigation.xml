@@ -68,6 +68,9 @@
         <action
             android:id="@+id/action_navigation_pools_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_navigation_pools_self"
+            app:destination="@id/navigation_pools" />
     </fragment>
 
     <fragment
@@ -189,6 +192,10 @@
         <action
             android:id="@+id/action_poolDetailFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <argument
+            android:name="poolOwnerName"
+            app:argType="string"
+            android:defaultValue="none" />
     </fragment>
     <fragment
         android:id="@+id/poolPlayersPicksFragment"

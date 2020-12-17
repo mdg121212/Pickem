@@ -11,11 +11,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
 import com.mattg.pickem.models.firebase.User
 import com.mattg.pickem.models.firebase.WinnerItem
-import com.mattg.pickem.ui.home.adapters.InviteAdapter
+import com.mattg.pickem.parsebackend.models.ParsePoolPlayer
+import com.mattg.pickem.ui.home.adapters.ParseInviteAdapter
+import com.mattg.pickem.ui.pools.adapters.ParsePoolPlayersAdapter
 import com.mattg.pickem.ui.pools.adapters.PoolPlayerListAdapter
 import com.mattg.pickem.ui.pools.adapters.WinnersAdapter
 import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
 import com.mattg.pickem.utils.*
+import com.parse.ParseUser
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_pool_detail.*
 import kotlinx.android.synthetic.main.invite_search_dialog.*
@@ -40,6 +43,8 @@ class PoolDetailFragment : BaseFragment() {
     private lateinit var userId: String
     private lateinit var ownerId: String
 
+    private lateinit var poolOwnerName: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +65,7 @@ class PoolDetailFragment : BaseFragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        poolOwnerName = args.poolOwnerName
         currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext()).toString()
         Timber.i(",,,,,,,,,,,,,,current week in pools from prefs is $currentWeek")
 
@@ -83,8 +88,8 @@ class PoolDetailFragment : BaseFragment() {
          * CHECK THE DATE AS IS FIRST, IF ITS THE DATE CHECK THIS, IF THIS = CURRENTWEEK OF PICKS + 1 THEN CHECK SCORES
          */
         getPoolDetails()
-        poolViewModel.checkArePicksForWeek(lastWeek)
-        poolViewModel.checkIfNeedWinner(lastWeek)
+//        poolViewModel.checkArePicksForWeek(lastWeek)
+//        poolViewModel.checkIfNeedWinner(lastWeek)
         poolViewModel.callApiForLastCompletedWeek()
         observeViewModel()
 
@@ -95,17 +100,18 @@ class PoolDetailFragment : BaseFragment() {
         }
         werePicksPicked = false
 
+
         btn_invite_players.setOnClickListener {
 
             if (poolViewModel.currentPool.value != null) {
-                showInviteDialog()
+                showParseInviteDialog()
             } else {
 
                 requireContext().shortToast("Select a pool")
             }
         }
 
-
+        observeParsePool()
     }
 
     private fun getPoolDetails() {
@@ -114,19 +120,28 @@ class PoolDetailFragment : BaseFragment() {
         userId = poolViewModel.user.uid
         ownerId = poolViewModel.currentPoolOwnerId.value.toString()
 
-        if (currentId != null) {
-            poolViewModel.getPoolPlayers(currentId!!)
-            poolViewModel.getSpecificPool(currentId!!)
-            poolViewModel.getPoolPicks(currentId!!, lastWeek)
-            poolViewModel.getWinners(currentId!!)
-            //for setting the pool owner display
-            val poolOwnerName = poolViewModel.currentPoolOwnerName.value.toString()
-            if (poolOwnerName == poolViewModel.user.displayName) {
-                tv_pool_detail_owner.text = getString(R.string.your_pool_text)
-            } else {
-                "Owner: $poolOwnerName".also { tv_pool_detail_owner.text = it }
-            }
+        val currentParsePoolId = poolViewModel.currentParsePoolId.value
+        Timber.i("**********current parse pool id from detail frag is $currentParsePoolId")
+
+        if (currentParsePoolId != null) {
+            Timber.i("*****currentParsePool id was not null")
+            poolViewModel.getParsePoolPlayers(currentParsePoolId)
+            observeParsePool()
         }
+        //   if (currentId != null) {
+        //     poolViewModel.getPoolPlayers(currentId!!)
+        //     poolViewModel.getSpecificPool(currentId!!)
+        //      poolViewModel.getPoolPicks(currentId!!, lastWeek)
+        //       poolViewModel.getWinners(currentId!!)
+        //for setting the pool owner display
+        // val poolOwnerName = poolViewModel.currentPoolOwnerName.value.toString()
+//            val poolOwnerName = poolViewModel.currentParsePoolData.value?.ownerName
+        if (poolOwnerName == ParseUser.getCurrentUser().username) {
+            tv_pool_detail_owner.text = getString(R.string.your_pool_text)
+        } else {
+            "Owner: $poolOwnerName".also { tv_pool_detail_owner.text = it }
+        }
+        //    }
         val poolName = args.poolName
         if (!poolName.isNullOrEmpty()) {
             tv_pool_detail_title.text = poolName
@@ -184,19 +199,26 @@ class PoolDetailFragment : BaseFragment() {
 
     }
 
-    private fun populateInviteRecycler(list: ArrayList<User>?) {
+    private fun populateParseInviteRecycler(list: ArrayList<ParseUser>?) {
         if (!list.isNullOrEmpty()) {
             showInviteRecycler()
             hidePlayersRecycler()
             val recycler = rv_invitations
             inviteClickListener = RecyclerClickListener { user, _, id ->
-                poolViewModel.sendInvitation(id)
+                poolViewModel.currentParsePoolId.value?.let {
+                    poolViewModel.createParseInvite(
+                        user.username, user.objectId,
+                        ParseUser.getCurrentUser().username, ParseUser.getCurrentUser().objectId,
+                        it, poolViewModel.currentParsePoolData.value?.poolName ?: "No Name"
+                    )
+                }
                 list.remove(user)
-                requireContext().shortToast("Invitation sent to ${user.name}")
+                requireContext().shortToast("Invitation sent to ${user.username}")
                 hideInviteRecycler()
+                poolViewModel.clearInviteListForRecycler()
                 showPlayersRecycler()
             }
-            val userAdapter = InviteAdapter(requireContext(), list, inviteClickListener)
+            val userAdapter = ParseInviteAdapter(requireContext(), list, inviteClickListener)
             val userLayoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             recycler.apply {
@@ -204,12 +226,13 @@ class PoolDetailFragment : BaseFragment() {
                 adapter = userAdapter
             }
         } else {
-            requireContext().shortToast("No user found with that email...")
+            requireContext().shortToast("No users found...")
         }
 
     }
 
-    private fun showInviteDialog() {
+
+    private fun showParseInviteDialog() {
         val invitationDialog = Dialog(requireContext())
         invitationDialog.apply {
             setContentView(R.layout.invite_search_dialog)
@@ -218,7 +241,8 @@ class PoolDetailFragment : BaseFragment() {
                 if (et_email_search.text.toString().isBlank()) {
                     requireContext().shortToast("Please enter an email")
                 } else {
-                    poolViewModel.searchForUsers(et_email_search.text.toString().trim())
+                    //poolViewModel.searchForUsers(et_email_search.text.toString().trim())
+                    poolViewModel.searchParseUsersToInvite(et_email_search.text.toString().trim())
                     invitationDialog.dismiss()
                 }
             }
@@ -242,12 +266,40 @@ class PoolDetailFragment : BaseFragment() {
         }
     }
 
-    private fun observeViewModel() {
-        poolViewModel.currentPoolPlayers.observe(viewLifecycleOwner) { playerList ->
-            setupPoolPlayerListRecycler(playerList)
+    private fun observeParsePool() {
+        poolViewModel.currentParsePoolData.observe(viewLifecycleOwner) {
+            Timber.i("%%%%%%%%%%observing pool data in detail frag, parse pool data is $it")
+            if (it != null) {
+                val players = it.players
+                for (player in players) {
+                    Timber.i("%%%%detail frag in pool, players list, player is $player")
+                }
+            }
         }
+
+        poolViewModel.parseUserEmailSearchStrings.observe(viewLifecycleOwner) {
+            Timber.i("***********parse pool email being observed value is $it.  call for users list from here")
+            if (it != null) {
+                populateParseInviteRecycler(it)
+            }
+        }
+
+        poolViewModel.parsePoolPlayers.observe(viewLifecycleOwner) {
+            Timber.i("%%%% GOT PARSE POOL PLAYERS< VALUE IS $it")
+            setupParsePlayerRecycler(it)
+        }
+    }
+
+    private fun observeViewModel() {
+
+//        poolViewModel.currentPoolPlayers.observe(viewLifecycleOwner) { playerList ->
+//            setupPoolPlayerListRecycler(playerList)
+//        }
         poolViewModel.usersList.observe(viewLifecycleOwner) { it1 ->
-            populateInviteRecycler(it1)
+            val list = it1.distinct()
+            val showList = arrayListOf<User>()
+            showList.addAll(list)
+            //   populateInviteRecycler(showList)
         }
         poolViewModel.callApiForCurrentWeek()
 
@@ -338,6 +390,24 @@ class PoolDetailFragment : BaseFragment() {
         }
     }
 
+    private fun setupParsePlayerRecycler(list: ArrayList<ParsePoolPlayer>) {
+        val recycler = rv_pool_players
+        clickListener = PoolPlayerListClickListener { _, _, int ->
+            when (int) {
+                1 -> {
+
+                }
+            }
+        }
+        val parseAdapter = ParsePoolPlayersAdapter(requireContext(), list, clickListener)
+        val poolPlayersLayoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        recycler.apply {
+            layoutManager = poolPlayersLayoutManager
+            adapter = parseAdapter
+        }
+    }
+
     private fun setupPoolPlayerListRecycler(list: ArrayList<User>) {
         val recycler = rv_pool_players
         clickListener = PoolPlayerListClickListener { _, _, int ->
@@ -373,7 +443,8 @@ class PoolDetailFragment : BaseFragment() {
     private fun submitPicks() {
         val dateToPick = SharedPrefHelper.getDateToCheckFromPrefs(requireContext())
         if (dateToPick != null) {
-            poolViewModel.submitPicks(dateToPick)
+            //     poolViewModel.submitPicks(dateToPick)
+            //      poolViewModel.addPicksToParsePool()
             requireContext().shortToast("Picks Submitted!")
 
         }
@@ -430,6 +501,54 @@ class PoolDetailFragment : BaseFragment() {
         val recycler = rv_pool_players
         recycler.visibility = View.INVISIBLE
     }
+
+
+//    private fun populateInviteRecycler(list: ArrayList<User>?) {
+//        if (!list.isNullOrEmpty()) {
+//            showInviteRecycler()
+//            hidePlayersRecycler()
+//            val recycler = rv_invitations
+//            inviteClickListener = RecyclerClickListener { user, _, id ->
+//                poolViewModel.sendInvitation(id)
+//                list.remove(user)
+//                requireContext().shortToast("Invitation sent to ${user.name}")
+//                hideInviteRecycler()
+//                showPlayersRecycler()
+//            }
+//            val userAdapter = InviteAdapter(requireContext(), list, inviteClickListener)
+//            val userLayoutManager =
+//                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+//            recycler.apply {
+//                layoutManager = userLayoutManager
+//                adapter = userAdapter
+//            }
+//        } else {
+//            requireContext().shortToast("No user found with that email...")
+//        }
+//
+//    }
+
+
+//    private fun showInviteDialog() {
+//        val invitationDialog = Dialog(requireContext())
+//        invitationDialog.apply {
+//            setContentView(R.layout.invite_search_dialog)
+//            btn_invite_search.setOnClickListener {
+//                //clicked search, change visibility here
+//                if (et_email_search.text.toString().isBlank()) {
+//                    requireContext().shortToast("Please enter an email")
+//                } else {
+//                    poolViewModel.searchForUsers(et_email_search.text.toString().trim())
+//                    invitationDialog.dismiss()
+//                }
+//            }
+//            btn_invite_cancel.setOnClickListener {
+//                invitationDialog.dismiss()
+//            }
+//        }.show()
+//
+//        observeViewModel()
+//    }
 
 
 }

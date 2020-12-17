@@ -10,25 +10,28 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
-import com.mattg.pickem.models.firebase.Invite
-import com.mattg.pickem.models.firebase.Pool
-import com.mattg.pickem.ui.home.adapters.InviteRecyclerAdapter
-import com.mattg.pickem.ui.home.adapters.UserPoolsAdapter
+import com.mattg.pickem.parsebackend.models.ParseInvite
+import com.mattg.pickem.parsebackend.models.ParsePool
+import com.mattg.pickem.ui.home.adapters.ParseInviteRecyclerAdapter
+import com.mattg.pickem.ui.pools.adapters.ParsePoolsAdapter
 import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
 import com.mattg.pickem.utils.BaseFragment
-import com.mattg.pickem.utils.InvitesClickListener
+import com.mattg.pickem.utils.ParseInvitesClickListener
 import com.mattg.pickem.utils.SharedPrefHelper
 import com.mattg.pickem.utils.UserPoolClickListener
+import com.parse.ParseUser
 import kotlinx.android.synthetic.main.create_pool_dialog.*
 import kotlinx.android.synthetic.main.fragment_view_pools.*
 import kotlinx.android.synthetic.main.invite_dialog.*
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class ViewPoolsFragment : BaseFragment() {
 
     private lateinit var poolViewModel: PoolViewModel
-    private var poolIdHolder: String ?= null
-    private lateinit var inviteClickListener: InvitesClickListener
+    private var poolIdHolder: String? = null
+    private lateinit var inviteClickListener: ParseInvitesClickListener
     private lateinit var userPoolsClickListener: UserPoolClickListener
     private var currentPool: String = ""
     private var upcomingWeek: String ?= null
@@ -53,44 +56,74 @@ class ViewPoolsFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val isInvitations = poolViewModel.listenForInvitations()
-        if(isInvitations){
-            Toast.makeText(requireContext(), "Invitations Pending", Toast.LENGTH_SHORT).show()
-        }
+//        val isInvitations = poolViewModel.listenForInvitations()
+//        if(isInvitations){
+//            Toast.makeText(requireContext(), "Invitations Pending", Toast.LENGTH_SHORT).show()
+//        }
 
         upcomingWeek = SharedPrefHelper.getWeekFromPrefs(requireContext())
-        poolViewModel.getUserPools()
-        observeViewModel()
+        fragmentScope.launch {
+            poolViewModel.getParsePools(ParseUser.getCurrentUser().username)
+            poolViewModel.checkParseInvites()
+
+        }
+
 
 
         btn_create_pool.setOnClickListener {
             showCreatePoolDialog()
         }
-
+        observeParseViewModel()
     }
 
-    private fun observeViewModel(){
+    private fun observeParseViewModel() {
 
-        poolViewModel.areInvites.observe(viewLifecycleOwner){
-            if(it == true) {
-                poolViewModel.listForInviteRecycler.value?.let { it1 -> generateDialogOfInvites(it1) }
-                 }
-           }
-        poolViewModel.userPoolsList.observe(viewLifecycleOwner){
-                setUpPoolRecycler(it)
+        poolViewModel.parsePools.observe(viewLifecycleOwner) {
+            Timber.i("*********observing parse pools in fragment, value is $it")
+            if (it != null) {
+                setUpPoolRecyclerParse(it)
             }
 
+            //    for(item in it){
+            //        Toast.makeText(requireContext(), "Pool Name Found ${item.poolName}", Toast.LENGTH_SHORT).show()
+            //    }
+        }
+        poolViewModel.parseInvitesList.observe(viewLifecycleOwner) {
+            Timber.i("*************observing parse invites, its value is $it")
+            Toast.makeText(requireContext(), "You have an invitation", Toast.LENGTH_SHORT).show()
+            if (!it.isNullOrEmpty()) {
+                generateDialogOfParseInvites(it)
+            }
+
+        }
+        poolViewModel.parsePoolError.observe(viewLifecycleOwner) {
+            if (it != null) {
+                Toast.makeText(requireContext(), "Pools gathering error $it", Toast.LENGTH_SHORT)
+                    .show()
+                poolViewModel.resetPoolError()
+            }
+        }
     }
+
 
     private fun showCreatePoolDialog() {
         val createPoolDialog = Dialog(requireContext())
         createPoolDialog.apply {
             setContentView(R.layout.create_pool_dialog)
             btn_create_pool_create.setOnClickListener {
-                if(et_pool_name.text.toString().isBlank()){
-                    Toast.makeText(requireContext(), "Please name your pool", Toast.LENGTH_SHORT).show()
+                if (et_pool_name.text.toString().isBlank()) {
+                    Toast.makeText(requireContext(), "Please name your pool", Toast.LENGTH_SHORT)
+                        .show()
                 } else {
-                    poolViewModel.createPool(poolViewModel.user.uid, et_pool_name.text.toString(), upcomingWeek ?: "not working")
+                    //    poolViewModel.createPool(poolViewModel.user.uid, et_pool_name.text.toString(), upcomingWeek ?: "not working")
+                    fragmentScope.launch {
+                        poolViewModel.createParsePool(
+                            poolName = et_pool_name.text.toString().trim()
+                        )
+                        poolViewModel.getParsePoolsByQuery()
+                    }
+
+                    findNavController().navigate(R.id.action_navigation_pools_self)
                     createPoolDialog.dismiss()
                 }
             }
@@ -99,7 +132,8 @@ class ViewPoolsFragment : BaseFragment() {
             }
         }.show()
     }
-    private fun generateDialogOfInvites(listForRecycler: ArrayList<Invite>) {
+
+    private fun generateDialogOfParseInvites(listForRecycler: ArrayList<ParseInvite>) {
         val inviteDialog = Dialog(requireContext())
         inviteDialog.apply {
             setContentView(R.layout.invite_dialog)
@@ -107,21 +141,39 @@ class ViewPoolsFragment : BaseFragment() {
                 inviteDialog.dismiss()
             }
             val recycler = rv_invites
-            inviteClickListener = InvitesClickListener { invite, position, delete ->
+            inviteClickListener = ParseInvitesClickListener { invite, position, delete ->
                 when (delete) {
                     1 -> { //accept invite
-                        poolViewModel.acceptInvitation(invite.poolId!!, invite.senderId!!, invite.inviteId!!)
+                        //   poolViewModel.acceptInvitation(invite.poolId!!, invite.senderId!!, invite.inviteId!!)
+                        poolViewModel.acceptInviteFromParsePool(
+                            ParseUser.getCurrentUser(),
+                            invite.inviteId,
+                            true
+                        )
                         listForRecycler.remove(invite)
                         listForRecycler.trimToSize()
-                        Toast.makeText(requireContext(), "Joined ${invite.poolName}!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Joined ${invite.poolName}!",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         recycler.adapter?.notifyItemRemoved(position)
 
                     }
                     2 -> { //decline and delete invite
-                        poolViewModel.declineInvitation(invite.inviteId!!)
+                        //     poolViewModel.declineInvitation(invite.inviteId!!)
+                        poolViewModel.acceptInviteFromParsePool(
+                            ParseUser.getCurrentUser(),
+                            invite.inviteId,
+                            false
+                        )
                         listForRecycler.remove(invite)
                         listForRecycler.trimToSize()
-                        Toast.makeText(requireContext(), "Declined to join ${invite.poolName}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Declined to join ${invite.poolName}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                         recycler.adapter?.notifyItemRemoved(position)
 
                     }
@@ -129,7 +181,7 @@ class ViewPoolsFragment : BaseFragment() {
             }
 
             val inviteAdapter =
-                InviteRecyclerAdapter(requireContext(), listForRecycler, inviteClickListener)
+                ParseInviteRecyclerAdapter(requireContext(), listForRecycler, inviteClickListener)
             val inviteLayoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             recycler.apply {
@@ -140,28 +192,101 @@ class ViewPoolsFragment : BaseFragment() {
 
         }.show()
     }
+//    private fun generateDialogOfInvites(listForRecycler: ArrayList<Invite>) {
+//        val inviteDialog = Dialog(requireContext())
+//        inviteDialog.apply {
+//            setContentView(R.layout.invite_dialog)
+//            btn_dialog_invites_close.setOnClickListener {
+//                inviteDialog.dismiss()
+//            }
+//            val recycler = rv_invites
+//            inviteClickListener = InvitesClickListener { invite, position, delete ->
+//                when (delete) {
+//                    1 -> { //accept invite
+//                        poolViewModel.acceptInvitation(invite.poolId!!, invite.senderId!!, invite.inviteId!!)
+//                        listForRecycler.remove(invite)
+//                        listForRecycler.trimToSize()
+//                        Toast.makeText(requireContext(), "Joined ${invite.poolName}!", Toast.LENGTH_SHORT).show()
+//                        recycler.adapter?.notifyItemRemoved(position)
+//
+//                    }
+//                    2 -> { //decline and delete invite
+//                        poolViewModel.declineInvitation(invite.inviteId!!)
+//                        listForRecycler.remove(invite)
+//                        listForRecycler.trimToSize()
+//                        Toast.makeText(requireContext(), "Declined to join ${invite.poolName}", Toast.LENGTH_SHORT).show()
+//                        recycler.adapter?.notifyItemRemoved(position)
+//
+//                    }
+//                }
+//            }
+//
+//            val inviteAdapter =
+//                InviteRecyclerAdapter(requireContext(), listForRecycler, inviteClickListener)
+//            val inviteLayoutManager =
+//                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+//            recycler.apply {
+//                adapter = inviteAdapter
+//                layoutManager = inviteLayoutManager
+//            }
+//
+//
+//        }.show()
+//    }
 
-    private fun setUpPoolRecycler(list: ArrayList<Pool>) {
-        userPoolsClickListener = UserPoolClickListener{ poolDocId, poolOwner, position, buttonInt, poolName, poolOwnerName ->
-            when (buttonInt){
-                1 -> {
-                    setPool(poolDocId, poolOwner, poolName, poolOwnerName)
-                }
-                2 -> {
-                    Timber.i(",,,,,,,, poolOwner from recycler is $poolOwner and current uid is ${poolViewModel.user.uid}")
-                    if (poolViewModel.user.uid == poolOwner) {
-                        Timber.i(",,,,,,,,,, true, or is the same owner is fired")
-                        deletePoolDialog(poolDocId, poolName, true)
-                    } else {
-                        Timber.i(",,,,,,,,,, false, or is not the owner is fired")
-                        deletePoolDialog(poolDocId, poolName, false)
+//    private fun setUpPoolRecycler(list: ArrayList<Pool>) {
+//        userPoolsClickListener = UserPoolClickListener{ poolDocId, poolOwner, position, buttonInt, poolName, poolOwnerName ->
+//            when (buttonInt){
+//                1 -> {
+//                    setPool(poolDocId, poolOwner, poolName, poolOwnerName)
+//                }
+//                2 -> {
+//                    Timber.i(",,,,,,,, poolOwner from recycler is $poolOwner and current uid is ${poolViewModel.user.uid}")
+//                    if (poolViewModel.user.uid == poolOwner) {
+//                        Timber.i(",,,,,,,,,, true, or is the same owner is fired")
+//                        deletePoolDialog(poolDocId, poolName, true)
+//                    } else {
+//                        Timber.i(",,,,,,,,,, false, or is not the owner is fired")
+//                        deletePoolDialog(poolDocId, poolName, false)
+//                    }
+//                }
+//            }
+//        }
+//        val recycler = rv_pools
+//        val poolsAdapter = UserPoolsAdapter(requireContext(), list, userPoolsClickListener )
+//        val poolsLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+//        recycler.apply {
+//            adapter = poolsAdapter
+//            layoutManager = poolsLayoutManager
+//        }
+//    }
+
+    private fun setUpPoolRecyclerParse(list: ArrayList<ParsePool>) {
+        userPoolsClickListener =
+            UserPoolClickListener { poolDocId, poolOwner, position, buttonInt, poolName, poolOwnerName ->
+                when (buttonInt) {
+                    1 -> {
+                        fragmentScope.launch {
+                            setPool(poolDocId, poolOwner, poolName, poolOwnerName)
+                        }
+
                     }
-                }
+                    2 -> {
+                        Timber.i("*******before owner check, names: ${ParseUser.getCurrentUser().username} == $poolOwner, other var  poolname $poolName poolOwnername $poolOwnerName")
+                        if (ParseUser.getCurrentUser().username.trim() == poolOwnerName.trim()) {
+                            Timber.i("*******saying is the owner, names: ${ParseUser.getCurrentUser().username} == $poolOwnerName")
+                            deletePoolDialog(poolDocId, poolName, true)
+                        } else {
+                            Timber.i("********saying not the owner, only deleting person from the pool")
+                            deletePoolDialog(poolDocId, poolName, false)
+                        }
+                    }
             }
         }
         val recycler = rv_pools
-        val poolsAdapter = UserPoolsAdapter(requireContext(), list, userPoolsClickListener )
-        val poolsLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        val poolsAdapter = ParsePoolsAdapter(requireContext(), list, userPoolsClickListener)
+        val poolsLayoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         recycler.apply {
             adapter = poolsAdapter
             layoutManager = poolsLayoutManager
@@ -171,7 +296,9 @@ class ViewPoolsFragment : BaseFragment() {
     private fun deletePoolDialog(poolId: String, poolName: String, isOwner: Boolean) {
         AlertDialog.Builder(requireContext()).setTitle("Delete Pool?")
                 .setPositiveButton("Delete") { dialog, _ ->
-                    poolViewModel.deletePool(poolId, poolName, isOwner)
+                    //      poolViewModel.deletePool(poolId, poolName, isOwner)
+                    poolViewModel.deleteParsePool(poolId, poolName, isOwner)
+                    findNavController().navigate(R.id.action_navigation_pools_self)
                     dialog.dismiss()
                 }
                 .setNegativeButton("Cancel") { dialog, _ ->
@@ -183,13 +310,24 @@ class ViewPoolsFragment : BaseFragment() {
     private fun setPool(poolIdToSet: String, poolOwnerId: String, poolName: String, poolOwnerName: String) {
         currentPool = "$poolOwnerId : $poolIdToSet"
         poolIdHolder = poolIdToSet
+        fragmentScope.launch {
+            Timber.i("******setting pool with id $poolIdToSet")
+            poolViewModel.setCurrentParsePool(poolIdToSet)
+            poolViewModel.getParsePoolById(poolIdToSet)
+        }
 
-        poolViewModel.setCurrentPool(poolIdToSet, poolName, poolOwnerId, poolOwnerName)
 
+        //   poolViewModel.setCurrentPool(poolIdToSet, poolName, poolOwnerId, poolOwnerName)
+
+        MainScope().launch {
             val action = ViewPoolsFragmentDirections.actionNavigationDashboardToPoolDetailFragment(
                 null,
-                poolName)
+                poolName,
+                false,
+                poolOwnerName
+            )
             findNavController().navigate(action)
+        }
 
     }
 

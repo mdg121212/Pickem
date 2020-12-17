@@ -1,20 +1,18 @@
 package com.mattg.pickem.utils
 
-import android.app.Application
-import android.content.Context
 import android.content.Intent
-import android.preference.PreferenceManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.firebase.ui.auth.AuthUI
-import com.google.firebase.firestore.FirebaseFirestore
 import com.mattg.pickem.LoginActivity
-import com.mattg.pickem.MainActivity
-import com.mattg.pickem.ui.home.viewModels.HomeViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 open class BaseFragment: Fragment() {
 
-    fun logout(){
+    val fragmentScope = CoroutineScope(Dispatchers.IO)
+
+    fun logout() {
         AuthUI.getInstance()
             .signOut(requireContext())
             .addOnCompleteListener {
