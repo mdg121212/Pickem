@@ -98,16 +98,21 @@ class CurrentList : BaseFragment() {
         when (wasFromDetail) {
             true -> {
                 MaterialAlertDialogBuilder(requireContext()).setTitle("Options")
-                        .setPositiveButton("Choose picks") { _, _ ->
-                            poolViewModel.setPicks(picks)
-                            val action = CurrentListDirections.actionCurrentListToPoolDetailFragment(null, args.poolName, true)
-                            findNavController().navigate(action)
-                        }
-                        .setNeutralButton("Cancel") { dialog, _ ->
-                            dialog.dismiss()
+                    .setPositiveButton("Choose picks") { _, _ ->
+                        poolViewModel.setPicks(picks)
+                        poolViewModel.addPicksToParsePool(picks)
+                        val action = CurrentListDirections.actionCurrentListToPoolDetailFragment(
+                            null,
+                            args.poolName,
+                            true
+                        )
+                        findNavController().navigate(action)
+                    }
+                    .setNeutralButton("Cancel") { dialog, _ ->
+                        dialog.dismiss()
 
-                        }
-                        .show()
+                    }
+                    .show()
 
             }
             false -> {

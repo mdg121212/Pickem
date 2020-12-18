@@ -6,7 +6,7 @@
     <data>
 <variable
     name="winner"
-    type="com.mattg.pickem.models.firebase.WinnerItem" />
+    type="com.mattg.pickem.parsebackend.models.WinnerItem" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

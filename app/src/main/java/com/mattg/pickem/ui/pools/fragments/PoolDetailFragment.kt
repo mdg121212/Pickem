@@ -9,15 +9,16 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mattg.pickem.R
-import com.mattg.pickem.models.firebase.User
-import com.mattg.pickem.models.firebase.WinnerItem
 import com.mattg.pickem.parsebackend.models.ParsePoolPlayer
+import com.mattg.pickem.parsebackend.models.WinnerItem
 import com.mattg.pickem.ui.home.adapters.ParseInviteAdapter
 import com.mattg.pickem.ui.pools.adapters.ParsePoolPlayersAdapter
-import com.mattg.pickem.ui.pools.adapters.PoolPlayerListAdapter
 import com.mattg.pickem.ui.pools.adapters.WinnersAdapter
 import com.mattg.pickem.ui.pools.viewModel.PoolViewModel
-import com.mattg.pickem.utils.*
+import com.mattg.pickem.utils.BaseFragment
+import com.mattg.pickem.utils.RecyclerClickListener
+import com.mattg.pickem.utils.SharedPrefHelper
+import com.mattg.pickem.utils.shortToast
 import com.parse.ParseUser
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_pool_detail.*
@@ -31,18 +32,13 @@ import java.util.*
 class PoolDetailFragment : BaseFragment() {
 
     private lateinit var poolViewModel: PoolViewModel
-    private lateinit var clickListener: PoolPlayerListClickListener
     private lateinit var inviteClickListener: RecyclerClickListener
     private lateinit var winnersAdapter: WinnersAdapter
     private lateinit var currentWeek: String
     private lateinit var lastWeek: String
     private lateinit var timeForWinners: String
-    private var currentId: String? = null
     private val args: PoolDetailFragmentArgs by navArgs()
     private var werePicksPicked = false
-    private lateinit var userId: String
-    private lateinit var ownerId: String
-
     private lateinit var poolOwnerName: String
 
 
@@ -50,7 +46,7 @@ class PoolDetailFragment : BaseFragment() {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
         werePicksPicked = args.werePicksJustSelected
-
+        poolOwnerName = args.poolOwnerName
     }
 
     override fun onCreateView(
@@ -58,14 +54,12 @@ class PoolDetailFragment : BaseFragment() {
         savedInstanceState: Bundle?
     ): View? {
         poolViewModel = ViewModelProvider(requireActivity()).get(PoolViewModel::class.java)
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_pool_detail, container, false)
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        poolOwnerName = args.poolOwnerName
         currentWeek = SharedPrefHelper.getWeekFromPrefs(requireContext()).toString()
         Timber.i(",,,,,,,,,,,,,,current week in pools from prefs is $currentWeek")
 
@@ -77,26 +71,24 @@ class PoolDetailFragment : BaseFragment() {
             if (it != null) {
                 val weekString = "Week ${it.toInt() - 1}"
                 Timber.i("**********week adjusted to one is $weekString should be one less than $lastWeek time for winners is $timeForWinners")
-
+                poolViewModel.setDateToCheck(timeForWinners)
+                poolViewModel.checkIfNeedWinner(weekString)
             } else {
                 poolViewModel.getWeekToCheckWinnerApi()
             }
         }
-        /**
-         * JUST ABOVE GETS RETURNS FROM API A CURRENT VERSION OF THE CURRENT WEEK AS FAR AS PICKS IN ACTION GO
-         * NEED TO CHECK THIS, AND IF IT IS EQUAL TO CURRENTWEEK + 1, THEN IT IS TIME TO CALCULATE SCORES
-         * CHECK THE DATE AS IS FIRST, IF ITS THE DATE CHECK THIS, IF THIS = CURRENTWEEK OF PICKS + 1 THEN CHECK SCORES
-         */
+
         getPoolDetails()
-//        poolViewModel.checkArePicksForWeek(lastWeek)
-//        poolViewModel.checkIfNeedWinner(lastWeek)
+
+        poolViewModel.checkIfNeedWinner(lastWeek)
         poolViewModel.callApiForLastCompletedWeek()
-        observeViewModel()
+
+        observeParsePool()
 
         tv_pool_detail_upcoming_week.text = "Can still submit picks for: $currentWeek"
         tv_pool_detail_week.text = "Current Week is: $lastWeek"
         if (werePicksPicked) {
-            submitPicks()
+            requireContext().shortToast("Your picks were submitted!")
         }
         werePicksPicked = false
 
@@ -115,10 +107,6 @@ class PoolDetailFragment : BaseFragment() {
     }
 
     private fun getPoolDetails() {
-        //use id to get list of players
-        currentId = poolViewModel.currentPool.value.toString()
-        userId = poolViewModel.user.uid
-        ownerId = poolViewModel.currentPoolOwnerId.value.toString()
 
         val currentParsePoolId = poolViewModel.currentParsePoolId.value
         Timber.i("**********current parse pool id from detail frag is $currentParsePoolId")
@@ -126,28 +114,99 @@ class PoolDetailFragment : BaseFragment() {
         if (currentParsePoolId != null) {
             Timber.i("*****currentParsePool id was not null")
             poolViewModel.getParsePoolPlayers(currentParsePoolId)
+            poolViewModel.getWinners(currentParsePoolId)
             observeParsePool()
         }
-        //   if (currentId != null) {
-        //     poolViewModel.getPoolPlayers(currentId!!)
-        //     poolViewModel.getSpecificPool(currentId!!)
-        //      poolViewModel.getPoolPicks(currentId!!, lastWeek)
-        //       poolViewModel.getWinners(currentId!!)
-        //for setting the pool owner display
-        // val poolOwnerName = poolViewModel.currentPoolOwnerName.value.toString()
-//            val poolOwnerName = poolViewModel.currentParsePoolData.value?.ownerName
+
         if (poolOwnerName == ParseUser.getCurrentUser().username) {
             tv_pool_detail_owner.text = getString(R.string.your_pool_text)
         } else {
             "Owner: $poolOwnerName".also { tv_pool_detail_owner.text = it }
         }
-        //    }
+
         val poolName = args.poolName
         if (!poolName.isNullOrEmpty()) {
             tv_pool_detail_title.text = poolName
         }
 
         poolViewModel.callApiForLastCompletedWeek()
+    }
+
+
+    private fun observeParsePool() {
+        poolViewModel.callApiForCurrentWeek()
+
+        poolViewModel.parseUserEmailSearchStrings.observe(viewLifecycleOwner) {
+            if (it != null) {
+                populateParseInviteRecycler(it)
+            }
+        }
+
+        poolViewModel.parsePoolPlayers.observe(viewLifecycleOwner) {
+            setupParsePlayerRecycler(it)
+        }
+
+        poolViewModel.needWinners.observe(viewLifecycleOwner) { needWinners ->
+            Timber.i("********observing need winners from parse pool function, its value is $needWinners")
+            if (needWinners) {
+                Timber.i("********observing need winners was true, about to observe dateToCheck")
+                poolViewModel.dateToCheck.observe(viewLifecycleOwner) { dateToCheck ->
+                    timeForWinners = dateToCheck
+                    val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                    Timber.i("**********observing date to check it is $dateToCheck")
+                    if (timeForWinners != "null") {
+                        val checkDate = formatter.parse(timeForWinners)
+                        Timber.i("**********observing date to check it was not null and was formatted to $checkDate")
+                        val nowDate =
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                Date.from(Instant.now())
+                            } else {
+                                TODO("VERSION.SDK_INT < O")
+                            }
+                        Timber.i("*********observing in parse pool, about to check $nowDate vs $checkDate")
+                        if (nowDate.hours == checkDate?.hours?.plus(5) || nowDate.date == checkDate?.date || nowDate.after(
+                                checkDate
+                            )
+                        ) {
+                            Timber.i("**************about to call winner for week to check api")
+                            poolViewModel.weekToCheckWinnerApi.observe(viewLifecycleOwner) { week ->
+
+                                val weekString = "Week ${week.toInt() - 1}"
+
+                                Timber.i("************week observed was not null, formatted it is $weekString checking against $lastWeek")
+                                //here when the week "it" is equal, it is actually one more hence the -1 above, this means its time to check winners
+                                if (weekString == lastWeek) {
+
+                                    observeForWinners()
+                                }
+
+                            }
+
+                            poolViewModel.winnerName.observe(viewLifecycleOwner) { name ->
+                                if (name != null) {
+                                    val action =
+                                        PoolDetailFragmentDirections.actionPoolDetailFragmentToWinnerSplashFragment(
+                                            name
+                                        )
+                                    findNavController().navigate(action)
+                                    poolViewModel.resetWinnerName()
+
+                                }
+                            }
+                        }
+                        Timber.i("*********THE DATE WASNT TIME TO GET THE WINNERS YET BIATCH")
+
+                    }
+                }
+            }
+        }
+
+        poolViewModel.parsePoolWinnersList.observe(viewLifecycleOwner) {
+            Timber.i("************OBSERVING THE FUCKING WINNERS LIST from parse , its value is $it")
+            if (it.isNotEmpty()) {
+                populateWinnersRecycler(it)
+            }
+        }
     }
 
     private fun getScoresDialog(lastWeek: String) {
@@ -165,9 +224,11 @@ class PoolDetailFragment : BaseFragment() {
             dialog.dismiss()
         }
         submitButton.setOnClickListener {
-            if (editText.text.toString().toInt() > 0) {
+            val inputScore = editText.text.toString().toInt()
+            if (inputScore > 0) {
                 val weekInt = lastWeek.filter { it.isDigit() }.trim().toInt()
-                getScores(weekInt, lastWeek, editText.text.toString().toInt())
+                getScores(weekInt, inputScore)
+                Timber.i("********submitting $inputScore for $weekInt")
                 btn_get_scores.apply {
                     visibility = View.GONE
                 }
@@ -179,20 +240,27 @@ class PoolDetailFragment : BaseFragment() {
         dialog.show()
     }
 
-    private fun getScores(week: Int, lastWeek: String, score: Int) {
-        val dateToGetWinners = SharedPrefHelper.getDateToCheckFromPrefs(requireContext())
-        val poolId = poolViewModel.currentPool.value!!
+    private fun getScores(week: Int, score: Int) {
+
+        val poolId = poolViewModel.currentParsePoolId.value
         poolViewModel.getScoresForWeek(week)
         poolViewModel.finalScoresFromWeek.observe(viewLifecycleOwner) {
+            Timber.i("************observing final score from week, its value is $it pool id is $poolId")
             if (it != null) {
-                poolViewModel.decideWinner(lastWeek, poolId, score)
+                if (poolId != null) {
+                    Timber.i("************scores and id were not null, about to call decide winner")
+                    poolViewModel.decideWinner(
+                        "Week 14",
+                        poolId,
+                        score
+                    )
+                }
                 poolViewModel.playerScoresCalculatedList.observe(viewLifecycleOwner) { scoresList ->
-                    if (it != null) {
-                        poolViewModel.displayWinner(scoresList, lastWeek, score)
+                    Timber.i("**********observing player calculated scores its value is $scoresList")
+                    if (poolId != null) {
+                        Timber.i("************in calc scores, id was not null, calling get winners")
                         poolViewModel.getWinners(poolId)
-
                     }
-
                 }
             }
         }
@@ -204,7 +272,7 @@ class PoolDetailFragment : BaseFragment() {
             showInviteRecycler()
             hidePlayersRecycler()
             val recycler = rv_invitations
-            inviteClickListener = RecyclerClickListener { user, _, id ->
+            inviteClickListener = RecyclerClickListener { user, _, _ ->
                 poolViewModel.currentParsePoolId.value?.let {
                     poolViewModel.createParseInvite(
                         user.username, user.objectId,
@@ -241,7 +309,6 @@ class PoolDetailFragment : BaseFragment() {
                 if (et_email_search.text.toString().isBlank()) {
                     requireContext().shortToast("Please enter an email")
                 } else {
-                    //poolViewModel.searchForUsers(et_email_search.text.toString().trim())
                     poolViewModel.searchParseUsersToInvite(et_email_search.text.toString().trim())
                     invitationDialog.dismiss()
                 }
@@ -251,7 +318,7 @@ class PoolDetailFragment : BaseFragment() {
             }
         }.show()
 
-        observeViewModel()
+        observeParsePool()
     }
 
     override fun onResume() {
@@ -260,107 +327,26 @@ class PoolDetailFragment : BaseFragment() {
     }
 
     private fun updateWinnerRecycler() {
-        val winnersList = poolViewModel.winnersForRecycler.value
+        val winnersList = poolViewModel.parsePoolWinnersList.value
         if (winnersList != null) {
             populateWinnersRecycler(winnersList)
         }
     }
 
-    private fun observeParsePool() {
-        poolViewModel.currentParsePoolData.observe(viewLifecycleOwner) {
-            Timber.i("%%%%%%%%%%observing pool data in detail frag, parse pool data is $it")
-            if (it != null) {
-                val players = it.players
-                for (player in players) {
-                    Timber.i("%%%%detail frag in pool, players list, player is $player")
-                }
-            }
-        }
-
-        poolViewModel.parseUserEmailSearchStrings.observe(viewLifecycleOwner) {
-            Timber.i("***********parse pool email being observed value is $it.  call for users list from here")
-            if (it != null) {
-                populateParseInviteRecycler(it)
-            }
-        }
-
-        poolViewModel.parsePoolPlayers.observe(viewLifecycleOwner) {
-            Timber.i("%%%% GOT PARSE POOL PLAYERS< VALUE IS $it")
-            setupParsePlayerRecycler(it)
-        }
-    }
-
-    private fun observeViewModel() {
-
-//        poolViewModel.currentPoolPlayers.observe(viewLifecycleOwner) { playerList ->
-//            setupPoolPlayerListRecycler(playerList)
-//        }
-        poolViewModel.usersList.observe(viewLifecycleOwner) { it1 ->
-            val list = it1.distinct()
-            val showList = arrayListOf<User>()
-            showList.addAll(list)
-            //   populateInviteRecycler(showList)
-        }
-        poolViewModel.callApiForCurrentWeek()
-
-        poolViewModel.winnersForRecycler.observe(viewLifecycleOwner) { winnerList ->
-            if (winnerList.isNotEmpty()) {
-                populateWinnersRecycler(winnerList)
-            }
-
-
-        }
-
-        poolViewModel.dateToCheck.observe(viewLifecycleOwner) {
-            timeForWinners = it
-            val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-
-            if (timeForWinners != "null") {
-                val checkDate = formatter.parse(timeForWinners)
-                val nowDate =
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        Date.from(Instant.now())
-                    } else {
-                        TODO("VERSION.SDK_INT < O")
-                    }
-                if (nowDate.hours == checkDate?.hours?.plus(5) && nowDate.date == checkDate.date || nowDate.after(
-                        checkDate
-                    )
-                ) {
-                    poolViewModel.getWeekToCheckWinnerApi()
-                    poolViewModel.weekToCheckWinnerApi.observe(viewLifecycleOwner) { week ->
-                        if (week != null) {
-                            val weekString = "Week ${week.toInt() - 1}"
-                            //here when the week "it" is equal, it is actually one more hence the -1 above, this means its time to check winners
-                            if (weekString == lastWeek) {
-                                observeForWinners()
-                            }
-                        }
-                    }
-
-                    poolViewModel.winnerName.observe(viewLifecycleOwner) { name ->
-                        if (name != null) {
-                            val action =
-                                PoolDetailFragmentDirections.actionPoolDetailFragmentToWinnerSplashFragment(
-                                    name
-                                )
-                            findNavController().navigate(action)
-                            poolViewModel.resetWinnerName()
-
-                        }
-                    }
-                }
-
-            }
-        }
-
-    }
 
     private fun observeForWinners() {
+        Timber.i("**********observe for winners called")
         poolViewModel.needWinners.observe(viewLifecycleOwner) { needWinners ->
+            Timber.i("*********need winners value is $needWinners")
             when (needWinners) {
                 true -> {
-                    if (poolViewModel.currentPoolOwnerId.value == userId) {
+                    Timber.i("*********need winners value was true")
+                    Timber.i(
+                        "*********about to check 2 values ${poolViewModel.currentParsePoolData.value!!.ownerId.trim()} : vs : ${
+                            ParseUser.getCurrentUser().email.toString().trim()
+                        }"
+                    )
+                    if (poolViewModel.currentParsePoolData.value!!.ownerId == ParseUser.getCurrentUser().email) {
                         btn_get_scores.apply {
                             visibility = View.VISIBLE
                             setOnClickListener {
@@ -372,6 +358,7 @@ class PoolDetailFragment : BaseFragment() {
                     }
                 }
                 false -> {
+                    Timber.i("*********need winners value was false")
                     Timber.i("do not need winners")
                 }
             }
@@ -392,14 +379,7 @@ class PoolDetailFragment : BaseFragment() {
 
     private fun setupParsePlayerRecycler(list: ArrayList<ParsePoolPlayer>) {
         val recycler = rv_pool_players
-        clickListener = PoolPlayerListClickListener { _, _, int ->
-            when (int) {
-                1 -> {
-
-                }
-            }
-        }
-        val parseAdapter = ParsePoolPlayersAdapter(requireContext(), list, clickListener)
+        val parseAdapter = ParsePoolPlayersAdapter(requireContext(), list)
         val poolPlayersLayoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         recycler.apply {
@@ -407,49 +387,6 @@ class PoolDetailFragment : BaseFragment() {
             adapter = parseAdapter
         }
     }
-
-    private fun setupPoolPlayerListRecycler(list: ArrayList<User>) {
-        val recycler = rv_pool_players
-        clickListener = PoolPlayerListClickListener { _, _, int ->
-            when (int) {
-                1 -> {
-
-                }
-            }
-        }
-
-        poolViewModel.currentPoolPlayersPicks.observe(viewLifecycleOwner) {
-            for (item in it) {
-                val pickSubmitterId = item.playerId
-                for (user in list) {
-                    val idToMatch = user.userId
-                    if (idToMatch == pickSubmitterId) {
-                        user.picksIn = true
-                    }
-                }
-            }
-
-            val poolPlayersAdapter = PoolPlayerListAdapter(requireContext(), list, clickListener)
-            val poolPlayersLayoutManager =
-                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-            recycler.apply {
-                layoutManager = poolPlayersLayoutManager
-                adapter = poolPlayersAdapter
-            }
-        }
-    }
-
-
-    private fun submitPicks() {
-        val dateToPick = SharedPrefHelper.getDateToCheckFromPrefs(requireContext())
-        if (dateToPick != null) {
-            //     poolViewModel.submitPicks(dateToPick)
-            //      poolViewModel.addPicksToParsePool()
-            requireContext().shortToast("Picks Submitted!")
-
-        }
-    }
-
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         requireActivity().menuInflater.inflate(R.menu.pool_detail_menu, menu)
@@ -459,7 +396,6 @@ class PoolDetailFragment : BaseFragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.mnu_submit_picks -> {
-
                 val action = PoolDetailFragmentDirections
                     .actionPoolDetailFragmentToCurrentList(
                         true,
@@ -473,11 +409,8 @@ class PoolDetailFragment : BaseFragment() {
                 findNavController().navigate(R.id.action_poolDetailFragment_to_poolPlayersPicksFragment)
             }
             R.id.mnu_pool_detail_logout -> logout()
-
             R.id.pool_detail_settings -> findNavController().navigate(R.id.action_poolDetailFragment_to_settingsFragment)
-
         }
-
         return true
     }
 
@@ -501,54 +434,6 @@ class PoolDetailFragment : BaseFragment() {
         val recycler = rv_pool_players
         recycler.visibility = View.INVISIBLE
     }
-
-
-//    private fun populateInviteRecycler(list: ArrayList<User>?) {
-//        if (!list.isNullOrEmpty()) {
-//            showInviteRecycler()
-//            hidePlayersRecycler()
-//            val recycler = rv_invitations
-//            inviteClickListener = RecyclerClickListener { user, _, id ->
-//                poolViewModel.sendInvitation(id)
-//                list.remove(user)
-//                requireContext().shortToast("Invitation sent to ${user.name}")
-//                hideInviteRecycler()
-//                showPlayersRecycler()
-//            }
-//            val userAdapter = InviteAdapter(requireContext(), list, inviteClickListener)
-//            val userLayoutManager =
-//                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-//            recycler.apply {
-//                layoutManager = userLayoutManager
-//                adapter = userAdapter
-//            }
-//        } else {
-//            requireContext().shortToast("No user found with that email...")
-//        }
-//
-//    }
-
-
-//    private fun showInviteDialog() {
-//        val invitationDialog = Dialog(requireContext())
-//        invitationDialog.apply {
-//            setContentView(R.layout.invite_search_dialog)
-//            btn_invite_search.setOnClickListener {
-//                //clicked search, change visibility here
-//                if (et_email_search.text.toString().isBlank()) {
-//                    requireContext().shortToast("Please enter an email")
-//                } else {
-//                    poolViewModel.searchForUsers(et_email_search.text.toString().trim())
-//                    invitationDialog.dismiss()
-//                }
-//            }
-//            btn_invite_cancel.setOnClickListener {
-//                invitationDialog.dismiss()
-//            }
-//        }.show()
-//
-//        observeViewModel()
-//    }
 
 
 }

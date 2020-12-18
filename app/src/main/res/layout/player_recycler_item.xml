@@ -4,23 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
-        <variable
-            name="user"
-            type="com.mattg.pickem.models.firebase.User" />
-
         <variable
             name="parseuser"
             type="com.parse.ParseUser" />
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cv_player_item"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
@@ -73,5 +66,5 @@
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>
