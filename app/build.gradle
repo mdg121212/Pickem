@@ -6,12 +6,19 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
 
+def apikeyPropertiesFile = rootProject.file("apikey.properties")
+def apikeyProperties = new Properties()
+apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
 
 android {
     compileSdkVersion 30
     buildToolsVersion "29.0.3"
 
     defaultConfig {
+
+        buildConfigField("String", "APP_KEY", apikeyProperties['APP_KEY'])
+        buildConfigField("String", "CLIENT_KEY", apikeyProperties['CLIENT_KEY'])
+
         applicationId "com.mattg.pickem"
         minSdkVersion 22
         targetSdkVersion 30
@@ -103,6 +110,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-simplexml:2.6.1'
     //parse sdk
     implementation "com.github.parse-community.Parse-SDK-Android:parse:1.18.5"
+    //jetpack encryption
+    implementation "androidx.security:security-crypto:1.1.0-alpha03"
 
 
     testImplementation 'junit:junit:4.+'

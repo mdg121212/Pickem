@@ -23,6 +23,7 @@ import com.parse.ParseUser
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_pool_detail.*
 import kotlinx.android.synthetic.main.invite_search_dialog.*
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -251,11 +252,14 @@ class PoolDetailFragment : BaseFragment() {
             if (it != null) {
                 if (poolId != null) {
                     Timber.i("************scores and id were not null, about to call decide winner")
-                    poolViewModel.decideWinner(
-                        "Week 14",
-                        poolId,
-                        score
-                    )
+                    fragmentScope.launch {
+                        poolViewModel.decideWinner(
+                            "Week 14",
+                            poolId,
+                            score
+                        )
+                    }
+
                 }
                 poolViewModel.playerScoresCalculatedList.observe(viewLifecycleOwner) { scoresList ->
                     Timber.i("**********observing player calculated scores its value is $scoresList")

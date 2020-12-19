@@ -20,14 +20,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import timber.log.Timber
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.List
-import kotlin.collections.first
-import kotlin.collections.isNotEmpty
 import kotlin.collections.set
-import kotlin.collections.sortByDescending
-import kotlin.collections.sortedByDescending
 
 @SuppressWarnings("unused")
 class PoolViewModel(application: Application) : AndroidViewModel(application) {
@@ -176,7 +169,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         _needWinners.value = input
     }
 
-    fun displayWinner(
+    private suspend fun displayWinner(
         inputList: ArrayList<Pair<Pair<String, String>, Pair<Int, Int>>>,
         lastWeek: String,
         finalScore: Int
@@ -267,7 +260,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    private fun updateWinners(data: HashMap<String, String>) {
+    private suspend fun updateWinners(data: HashMap<String, String>) {
 
         parsePoolRepository.addWinnerToPool(_currentParsePoolId.value.toString(), data)
 //        val ids = ArrayList<String>()
@@ -418,7 +411,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         _needWinners.value = true
     }
 
-    fun decideWinner(weekFilter: String, poolId: String, finalScore: Int) {
+    suspend fun decideWinner(weekFilter: String, poolId: String, finalScore: Int) {
         Timber.i("*****************calling decide winner with week filter $weekFilter")
         val retrievedPicks = ArrayList<HashMap<String, String>>()
 

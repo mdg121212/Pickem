@@ -3,14 +3,17 @@ package com.mattg.pickem.utils
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
+import com.mattg.pickem.BuildConfig
 import com.parse.Parse
 import timber.log.Timber
 import java.util.*
 
+const val sharedPrefsFile = "pickem_pref"
 class PickemApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
+
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         preferences.getString(
@@ -24,8 +27,8 @@ class PickemApplication: Application() {
 
         Parse.initialize(
             Parse.Configuration.Builder(this)
-                .applicationId("eg4nAdShJCVsRjT7QCyoA3ohlSOfxq7rhEsvquqD")
-                .clientKey("mKiBRFdZI2136yMFZnvwSEFcbyfefMX9VhOV5RYG")
+                .applicationId(BuildConfig.APP_KEY)
+                .clientKey(BuildConfig.CLIENT_KEY)
                 .server("https://parseapi.back4app.com")
                 .build()
         )

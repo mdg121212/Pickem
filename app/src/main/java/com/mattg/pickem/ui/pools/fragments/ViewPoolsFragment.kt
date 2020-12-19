@@ -223,7 +223,7 @@ class ViewPoolsFragment : BaseFragment() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun setPool(
+    private suspend fun setPool(
         poolIdToSet: String,
         poolOwnerId: String,
         poolName: String,
@@ -235,16 +235,18 @@ class ViewPoolsFragment : BaseFragment() {
             Timber.i("******setting pool with id $poolIdToSet")
             poolViewModel.setCurrentParsePool(poolIdToSet)
             poolViewModel.getParsePoolById(poolIdToSet)
+            MainScope().launch {
+                val action =
+                    ViewPoolsFragmentDirections.actionNavigationDashboardToPoolDetailFragment(
+                        null,
+                        poolName,
+                        false,
+                        poolOwnerName
+                    )
+                findNavController().navigate(action)
+            }
         }
-        MainScope().launch {
-            val action = ViewPoolsFragmentDirections.actionNavigationDashboardToPoolDetailFragment(
-                null,
-                poolName,
-                false,
-                poolOwnerName
-            )
-            findNavController().navigate(action)
-        }
+
 
     }
 
