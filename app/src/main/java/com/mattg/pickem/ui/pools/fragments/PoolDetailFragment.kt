@@ -40,6 +40,7 @@ class PoolDetailFragment : BaseFragment() {
     private val args: PoolDetailFragmentArgs by navArgs()
     private var werePicksPicked = false
     private lateinit var poolOwnerName: String
+    private lateinit var poolId: String
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +67,7 @@ class PoolDetailFragment : BaseFragment() {
         lastWeek = SharedPrefHelper.getLastOrCurrentWeekFromPrefs(requireContext()).toString()
         timeForWinners = SharedPrefHelper.getDateToCheckFromPrefs(requireContext()).toString()
         poolViewModel.getWeekToCheckWinnerApi()
+        poolId = poolViewModel.currentParsePoolId.value.toString()
 
         poolViewModel.weekToCheckWinnerApi.observe(viewLifecycleOwner) {
             if (it != null) {
@@ -95,7 +97,7 @@ class PoolDetailFragment : BaseFragment() {
 
         btn_invite_players.setOnClickListener {
 
-            if (poolViewModel.currentPool.value != null) {
+            if (poolId != null) {
                 showParseInviteDialog()
             } else {
 

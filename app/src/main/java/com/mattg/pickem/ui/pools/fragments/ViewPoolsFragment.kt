@@ -71,15 +71,12 @@ class ViewPoolsFragment : BaseFragment() {
     private fun observeParseViewModel() {
 
         poolViewModel.parsePools.observe(viewLifecycleOwner) {
-            Timber.i("*********observing parse pools in fragment, value is $it")
             if (it != null) {
                 setUpPoolRecyclerParse(it)
             }
         }
 
         poolViewModel.parseInvitesList.observe(viewLifecycleOwner) {
-            Timber.i("*************observing parse invites, its value is $it")
-            Toast.makeText(requireContext(), "You have an invitation", Toast.LENGTH_SHORT).show()
             if (!it.isNullOrEmpty()) {
                 generateDialogOfParseInvites(it)
             }
@@ -146,6 +143,7 @@ class ViewPoolsFragment : BaseFragment() {
                             Toast.LENGTH_SHORT
                         ).show()
                         recycler.adapter?.notifyItemRemoved(position)
+                        findNavController().navigate(R.id.action_navigation_pools_self)
 
                     }
                     2 -> { //decline and delete invite
