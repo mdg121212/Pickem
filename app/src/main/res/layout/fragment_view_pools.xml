@@ -26,12 +26,12 @@
                 android:id="@+id/iv_stadium_graphic"
                 android:layout_width="wrap_content"
                 android:layout_height="100dp"
+                android:contentDescription="@string/todo"
                 android:scaleType="fitXY"
                 android:visibility="visible"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/appfield"
-                android:contentDescription="@string/todo" />
+                app:srcCompat="@drawable/appfield" />
 
             <TextView
                 android:id="@+id/tv_current_pool"
@@ -81,12 +81,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="275dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/title_divider" />
+                app:layout_constraintTop_toBottomOf="@+id/tv_view_pools_info" />
+
+            <TextView
+                android:id="@+id/tv_view_pools_info"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="@string/these_are_your_pools_click_select_pool_to_view_manage_an_individual_pool_you_can_also_click_delete_to_delete_a_pool_that_you_created_it_or_remove_yourself_from_from_a_pool_you_joined_click_create_new_pool_to_start_a_new_pool"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/iv_stadium_graphic" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

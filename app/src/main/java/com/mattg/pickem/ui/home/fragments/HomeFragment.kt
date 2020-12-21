@@ -99,6 +99,7 @@ class HomeFragment : BaseFragment() {
         observeViewModel()
 
         button.setOnClickListener {
+            tv_directions.visibility = View.GONE
             emptyHomeScreenButtonClick()
             checkGameCount()
         }

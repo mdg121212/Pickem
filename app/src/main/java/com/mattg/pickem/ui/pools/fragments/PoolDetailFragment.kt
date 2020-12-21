@@ -75,15 +75,17 @@ class PoolDetailFragment : BaseFragment() {
                 val weekString = "Week ${it.toInt() - 1}"
                 Timber.i("**********week adjusted to one is $weekString should be one less than $lastWeek time for winners is $timeForWinners")
                 poolViewModel.setDateToCheck(timeForWinners)
-                poolViewModel.checkIfNeedWinner(weekString)
-            } else {
-                poolViewModel.getWeekToCheckWinnerApi()
+                fragmentScope.launch { poolViewModel.checkIfNeedWinner(weekString) }
+
             }
+//            else {
+//                poolViewModel.getWeekToCheckWinnerApi()
+//            }
         }
 
         getPoolDetails()
-
-        poolViewModel.checkIfNeedWinner(lastWeek)
+        Timber.i("&&&&&&&&&&&checking if need winner for week : $lastWeek")
+        fragmentScope.launch { poolViewModel.checkIfNeedWinner(lastWeek) }
         poolViewModel.callApiForLastCompletedWeek()
 
         observeParsePool()
@@ -106,7 +108,7 @@ class PoolDetailFragment : BaseFragment() {
             }
         }
 
-        observeParsePool()
+
     }
 
     private fun getPoolDetails() {
@@ -118,7 +120,7 @@ class PoolDetailFragment : BaseFragment() {
             Timber.i("*****currentParsePool id was not null")
             poolViewModel.getParsePoolPlayers(currentParsePoolId)
             poolViewModel.getWinners(currentParsePoolId)
-            observeParsePool()
+
         }
 
         if (poolOwnerName == ParseUser.getCurrentUser().username) {
@@ -138,6 +140,27 @@ class PoolDetailFragment : BaseFragment() {
 
     private fun observeParsePool() {
         poolViewModel.callApiForCurrentWeek()
+
+        poolViewModel.weekToCheckWinnerApi.observe(viewLifecycleOwner) { week ->
+            Timber.i("*********week observed is $week")
+            var weekString: String
+            if (week != null) {
+                weekString = "Week ${week.toInt() - 1}"
+                Timber.i("************week observed was not null, formatted it is $weekString checking against $lastWeek")
+
+                if (weekString == lastWeek) {
+                    observeForWinners()
+                }
+            } else
+                weekString = "Week null"
+            Timber.i("************week observed was  null, formatted it is $weekString no need to check")
+
+
+            //here when the week "it" is equal, it is actually one more hence the -1 above, this means its time to check winners
+
+
+        }
+
 
         poolViewModel.parseUserEmailSearchStrings.observe(viewLifecycleOwner) {
             if (it != null) {
@@ -179,7 +202,6 @@ class PoolDetailFragment : BaseFragment() {
                                 Timber.i("************week observed was not null, formatted it is $weekString checking against $lastWeek")
                                 //here when the week "it" is equal, it is actually one more hence the -1 above, this means its time to check winners
                                 if (weekString == lastWeek) {
-
                                     observeForWinners()
                                 }
 
@@ -324,7 +346,7 @@ class PoolDetailFragment : BaseFragment() {
             }
         }.show()
 
-        observeParsePool()
+
     }
 
     override fun onResume() {

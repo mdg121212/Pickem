@@ -261,16 +261,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
 
 
     private suspend fun updateWinners(data: HashMap<String, String>) {
-
         parsePoolRepository.addWinnerToPool(_currentParsePoolId.value.toString(), data)
-//        val ids = ArrayList<String>()
-//        val listToGetIdsFrom = _currentPoolPlayers.value!!
-//        for (player in listToGetIdsFrom) {
-//            val id = player.userId
-//            ids.add(id)
-//        }
-
-//        repository.addWinnerToPools(user.uid, _currentPool.value!!, data, _currentPoolName.value!!, ids)
     }
 
     fun callApiForLastCompletedWeek() {
@@ -391,7 +382,7 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
             })
     }
 
-    fun checkIfNeedWinner(week: String) {
+    suspend fun checkIfNeedWinner(week: String) {
         Timber.i("**********checkIfNeedWinnerCalled for week: $week with pool value ${_currentParsePoolId.value!!}")
         val winnersList = parsePoolRepository.getWinners(_currentParsePoolId.value!!)
         var winners = 0
@@ -405,10 +396,10 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             Timber.i("*************about to set boolean based on $winners being 0 or more ")
-            _needWinners.value = winners <= 0
+            _needWinners.postValue(winners <= 0)
         } else
             Timber.i("*************need winners boolean about to be set to true since no winners matching $week were found ")
-        _needWinners.value = true
+        _needWinners.postValue(true)
     }
 
     suspend fun decideWinner(weekFilter: String, poolId: String, finalScore: Int) {
@@ -491,7 +482,6 @@ class PoolViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val winnersList = parsePoolRepository.getWinners(poolId)
             Timber.i("********winners list is equal to $winnersList")
-
 
 
             if (winnersList != null) {
