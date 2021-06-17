@@ -15,4 +15,10 @@
 
 
     </style>
+
+    <style name="OptionsDialogStyle" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="actionMenuTextColor">@color/primaryDarkColor</item>
+        <item name="titleTextColor">@color/primaryColor</item>
+
+    </style>
 </resources>

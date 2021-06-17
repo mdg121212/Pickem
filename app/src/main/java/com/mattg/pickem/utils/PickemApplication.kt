@@ -9,6 +9,7 @@ import timber.log.Timber
 import java.util.*
 
 const val sharedPrefsFile = "pickem_pref"
+
 class PickemApplication: Application() {
     override fun onCreate() {
         super.onCreate()
@@ -16,6 +17,7 @@ class PickemApplication: Application() {
 
 
         val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+
         preferences.getString(
             "key_night_mode",
             "auto"
@@ -24,6 +26,8 @@ class PickemApplication: Application() {
             Timber.i("*******mode = $mode")
             AppCompatDelegate.setDefaultNightMode(mode.value)
         }
+
+        preferences.getBoolean("key_expert", true)
 
         Parse.initialize(
             Parse.Configuration.Builder(this)

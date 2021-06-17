@@ -106,6 +106,10 @@
     <string name="sign_in">Sign In</string>
     <string name="password">Password:</string>
     <string name="these_are_your_pools_click_select_pool_to_view_manage_an_individual_pool_you_can_also_click_delete_to_delete_a_pool_that_you_created_it_or_remove_yourself_from_from_a_pool_you_joined_click_create_new_pool_to_start_a_new_pool">These are your pools, click select poolto view/manage an individual pool. You can also click deleteto delete a pool that you created it, or remove yourself from from a pool you joined. Click create new poolto start a new pool!</string>
+    <string name="pref_expert_summary">Select whether or not to see expert picks.</string>
+    <string name="pref_expert_title">Show Expert Picks</string>
+    <string name="pref_key_expert">key_expert</string>
+    <string name="expert_percent_view_tag">v_percent</string>
 
 
 </resources>

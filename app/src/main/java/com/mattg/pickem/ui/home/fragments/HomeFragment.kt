@@ -6,9 +6,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.*
+import androidx.core.view.forEach
 import androidx.core.view.get
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import com.mattg.pickem.LoginActivityParse
 import com.mattg.pickem.R
 import com.mattg.pickem.models.general.Game
@@ -16,6 +18,8 @@ import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import com.mattg.pickem.utils.*
 import kotlinx.android.synthetic.main.dialog_choose_week.*
 import kotlinx.android.synthetic.main.fragment_home.*
+import kotlinx.android.synthetic.main.fragment_home.view.*
+import kotlinx.android.synthetic.main.info_dialog_layout.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,12 +31,15 @@ import kotlin.collections.ArrayList
 class HomeFragment : BaseFragment() {
 
     private lateinit var homeViewModel: HomeViewModel
- //   private var selectionsString = ""
+
+    //   private var selectionsString = ""
     private var checkBoxList = ArrayList<RadioGroup>()
     private var pairList = ArrayList<Pair<RadioGroup, TextView>>()
     private var gamesCount = 0
     private var currentDateToSaveForCache: String? = null
-    private var weekToCheck: String ?= null
+    private var weekToCheck: String? = null
+    private var showExpertPicks: Boolean = false
+    var myViewGroup: ViewGroup? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,6 +51,7 @@ class HomeFragment : BaseFragment() {
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         setHasOptionsMenu(true)
 
+        // myViewGroup = container
         return root
     }
 
@@ -51,6 +59,8 @@ class HomeFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //create a list to iterate over button groups
+        //myViewGroup = view.container
+        myViewGroup = view.cl_home_fragment
         checkBoxList = arrayListOf(
             rg_gameOne,
             rg_gameTwo,
@@ -111,6 +121,8 @@ class HomeFragment : BaseFragment() {
             val intent = Intent(requireContext(), LoginActivityParse::class.java)
             startActivity(intent)
         }
+
+
     }
 
 
@@ -139,6 +151,10 @@ class HomeFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Saves the current picks object to the device Room database for text, email, and
+     * re-usability (sending multiple variants of picks for any week)
+     */
     private fun savePicksToDatabase(picks: String, picksFormatted: String) {
         val pick = formatForPickDatabase(requireContext(), picks, picksFormatted)
         homeViewModel.savePickToDatabase(pick)
@@ -149,19 +165,11 @@ class HomeFragment : BaseFragment() {
         //calender instance with get first field retrieves the correct year
         val calender = Calendar.getInstance()
         val year = calender.get(1)
-        checkDate(getDate(), year)
+        // weekToCheck = checkDate(getDate(), year, homeViewModel, requireContext())
+        weekToCheck = checkDate(getDate(), 2020, homeViewModel, requireContext())
     }
 
-    private fun checkDate(date: Date, year: Int) {
-        val week = homeViewModel.getWeekToPick(date)
-        //adding the week string to shared prefs to use app wide
-        weekToCheck = week.first
-        SharedPrefHelper.addWeekToPrefs(requireContext(), week.first)
-        SharedPrefHelper.addLastOrCurrentWeekToPrefs(requireContext(), week.second)
 
-        homeViewModel.setDate(date, year)
-
-    }
     private fun checkGameCount() {
         homeViewModel.gameCount.observe(viewLifecycleOwner) {
             gamesCount = it
@@ -198,6 +206,21 @@ class HomeFragment : BaseFragment() {
             Timber.i("setUpRadioGroup called")
             gamesCount = count
         }
+
+    }
+
+    private fun showPercentageInfoDialog(percent: Int) {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.info_dialog_layout)
+        val titleText = dialog.tv_title
+        val largerText = dialog.tv_percentage
+        largerText.setText("$percent%")
+        largerText.setTextColor(ViewUtils.colorForPercentage(percent))
+        val close = dialog.dialog_layout
+        close.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
 
@@ -229,7 +252,6 @@ class HomeFragment : BaseFragment() {
         homeButton.apply {
             text = teamOne
             visibility = View.VISIBLE
-
         }
         awayImage.apply {
             setImageResource(teamTwoImage)
@@ -239,8 +261,6 @@ class HomeFragment : BaseFragment() {
         awayButton.apply {
             text = teamTwo
             visibility = View.VISIBLE
-
-
         }
     }
 
@@ -257,40 +277,26 @@ class HomeFragment : BaseFragment() {
     }
 
 
-
-    private fun generatePickList(
-        list: ArrayList<RadioGroup>,
-        score: String,
-        week: String,
-        date: String
-    ): Pair<String, String> {
-        val pickList = ArrayList<String>()
-        val pickList2 = ArrayList<String>()
-        for (group in list) {
-            val homeTeamButton = (group[1] as RadioButton)
-            val awayTeamButton = (group[2] as RadioButton)
-            if (homeTeamButton.isChecked) {
-                val text = homeTeamButton.text.toString()
-                pickList.add(text)
-                pickList2.add(text)
-            } else if (awayTeamButton.isChecked) {
-                val text = awayTeamButton.text.toString()
-                pickList.add(text)
-                pickList2.add(text)
-            }
-
-        }
-        pickList.add(score)
-        pickList.add(week)
-        pickList.add(date)
-        val returnString = pickList.toString()
-        val returnFormattedString = pickList2.toString()
-
-        Timber.i(returnString)
-        return Pair(returnString, returnFormattedString)
-    }
-
     private fun observeViewModel() {
+        homeViewModel.setShouldShowExperts(SharedPrefHelper.getShowExpert(requireContext()))
+        homeViewModel.showExperts.observe(viewLifecycleOwner) {
+            if (it != null) {
+                Toast.makeText(requireContext(), "Should Show experts == $it", Toast.LENGTH_SHORT)
+                    .show()
+                when (it) {
+                    true -> {
+                        showPercentageViews()
+                    }
+                    false -> {
+                        showPercentageViews()
+                    }
+                    null -> {
+                        Timber.d(">>>>>>expert value was null?......")
+                    }
+                }
+
+            }
+        }
         homeViewModel.teamsAndImages.observe(viewLifecycleOwner) {
             if (it != null) {
                 setText(it)
@@ -299,8 +305,8 @@ class HomeFragment : BaseFragment() {
                 et_home_monday_points.visibility = View.VISIBLE
             }
         }
-        homeViewModel.dateToCheckWinner.observe(viewLifecycleOwner){
-            if (!it.isNullOrEmpty()){
+        homeViewModel.dateToCheckWinner.observe(viewLifecycleOwner) {
+            if (!it.isNullOrEmpty()) {
 
                 SharedPrefHelper.addDateToCheckToPrefs(requireContext(), it, weekToCheck!!)
                 Timber.i("[[[[[[ just added $it to shared prefs as date to check winner need to delete this when actually choosing the winner")
@@ -318,44 +324,57 @@ class HomeFragment : BaseFragment() {
         }
         homeViewModel.apiCallErrorMessage.observe(viewLifecycleOwner) {
             if (it.isNotEmpty()) {
+                Timber.d("++++++++error should be toasted $it")
                 requireContext().shortToast(it)
+                this.view?.let { it1 -> Snackbar.make(it1, "$it", 3) }
             }
         }
     }
 
+    /**
+     * TODO Uncomment first version when views actually need to be shown
+     *
+     */
+    private fun showPercentageViews() {
+        //  myViewGroup?.forEach { it -> if(it.tag == R.string.expert_percent_view_tag) it.visibility = (View.VISIBLE)  else it.visibility = (View.GONE)  }
+        myViewGroup?.forEach { it ->
+            if (it.tag != null && it.tag.toString()
+                    .equals(("v_percent"))
+            ) Timber.d(">>>>>>${it.tag} will show it ") else Timber.d(">>>>>>${it.tag} will not show")
+        }
+    }
 
 
-    private fun animation(){
+    private fun animation() {
         val animator = ObjectAnimator.ofFloat(iv_football_loading, View.ROTATION, -360f, 0f)
-
         animator.repeatCount = 1
         animator.duration = 1000
         animator.start()
     }
 
-    private fun showFootBallSpinner(){
-
+    private fun showFootBallSpinner() {
         iv_football_loading.apply {
             View.VISIBLE
-
         }
         animation()
-
     }
-    private fun hideFootballSpinner(){
+
+    private fun hideFootballSpinner() {
         iv_football_loading.visibility = View.GONE
     }
 
     private fun emptyHomeScreenButtonClick() {
         homeViewModel.setShowSpinner(true)
+        homeViewModel.setUpcomingWeek(5)
         homeViewModel.upcomingWeek.value?.let { it1 ->
-           CoroutineScope(Dispatchers.IO).launch {
-               homeViewModel.getMatchupsFiltered(it1)
-           }
+            Timber.d(">>>>>>upcoming week value is %s", it1)
+            CoroutineScope(Dispatchers.IO).launch {
+                homeViewModel.getMatchupsFiltered(it1)
+            }
         }
     }
 
-    private fun getMatchupsForDifferentWeek(week: Int){
+    private fun getMatchupsForDifferentWeek(week: Int) {
         homeViewModel.setShowSpinner(true)
         tv_home_title.text = "Week $week"
         CoroutineScope(Dispatchers.IO).launch {
@@ -363,24 +382,26 @@ class HomeFragment : BaseFragment() {
         }
     }
 
-    private fun showWeekDialog(){
+    private fun showWeekDialog() {
         val dialog = Dialog(requireContext())
         dialog.setContentView(R.layout.dialog_choose_week)
-        val editText = dialog.et_week
-        val searchButton = dialog.btn_search_week
-        val cancelButton = dialog.btn_cancel
-        searchButton.setOnClickListener {
-            if(editText.text.isNullOrEmpty()){
+        // val editText = dialog.et_week
+        //val searchButton = dialog.btn_search_week
+        // val cancelButton = dialog.btn_cancel
+        dialog.btn_search_week.setOnClickListener {
+            if (dialog.et_week.text.isNullOrEmpty()) {
                 Toast.makeText(requireContext(), "Enter a week", Toast.LENGTH_SHORT).show()
             }
-            if(editText.text.toString().toInt() > 17 || editText.text.toString().toInt() < 1){
+            if (dialog.et_week.text.toString().toInt() > 17 || dialog.et_week.text.toString()
+                    .toInt() < 1
+            ) {
                 Toast.makeText(requireContext(), "Enter a valid week", Toast.LENGTH_SHORT).show()
             }
-            val week = editText.text.toString().trim().toInt()
+            val week = dialog.et_week.text.toString().trim().toInt()
             getMatchupsForDifferentWeek(week)
             dialog.dismiss()
         }
-        cancelButton.setOnClickListener {
+        dialog.btn_cancel.setOnClickListener {
             dialog.dismiss()
         }
         dialog.show()
@@ -392,16 +413,14 @@ class HomeFragment : BaseFragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-
         when (item.itemId) {
             R.id.mnu_change_week -> {
-               showWeekDialog()
+                showWeekDialog()
             }
             R.id.mnu_home_logout -> {
                 logout()
             }
             R.id.mnu_view_saved_picks -> {
-              //  val action = HomeFragmentDirections.actionNavigationHomeToCurrentList(false, null, null)
                 findNavController().navigate(R.id.action_navigation_home_to_currentList)
             }
             R.id.mnu_home_refresh -> {
@@ -417,7 +436,7 @@ class HomeFragment : BaseFragment() {
     }
 
 
-    }
+}
 
 
 

@@ -116,8 +116,10 @@ class CurrentList : BaseFragment() {
 
             }
             false -> {
-
-                MaterialAlertDialogBuilder(requireContext()).setTitle("Options")
+                MaterialAlertDialogBuilder(
+                    requireContext(),
+                    R.style.OptionsDialogStyle
+                ).setTitle("Options")
                         .setPositiveButton("Send Picks") { _, _ ->
                             if (picksText != "") {
                                 val sendIntent: Intent = Intent().apply {

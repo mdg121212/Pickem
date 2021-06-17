@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_expert_summary">Select whether or not to see expert picks.</string>
+    <string name="pref_expert_title">Show Expert Picks</string>
+    <string name="expert_percent_view_tag">v_percent</string>
+</resources>

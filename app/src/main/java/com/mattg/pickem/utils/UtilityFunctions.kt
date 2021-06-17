@@ -7,14 +7,17 @@ import android.net.NetworkInfo
 import android.net.Uri
 import android.widget.ImageView
 import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.view.get
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.mattg.pickem.R
 import com.mattg.pickem.db.Pick
 import com.mattg.pickem.models.general.Week
+import com.mattg.pickem.ui.home.viewModels.HomeViewModel
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.*
@@ -264,15 +267,56 @@ fun getDate(): Date {
 
 }
 
-fun Context.shortToast(message: String){
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+fun Context.shortToast(message: String) {
+    Toast.makeText(this.applicationContext, message, Toast.LENGTH_SHORT).show()
 }
 
-fun Context.longToast(message: String){
+fun Context.longToast(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_LONG).show()
 }
 
- fun formatForPickDatabase(context: Context, picks: String, picksFormatted: String): Pick {
+fun checkDate(date: Date, year: Int, model: HomeViewModel, context: Context): String {
+    val week = model.getWeekToPick(date)
+    //adding the week string to shared prefs to use app wide
+    SharedPrefHelper.addWeekToPrefs(context, week.first)
+    SharedPrefHelper.addLastOrCurrentWeekToPrefs(context, week.second)
+    model.setDate(date, year)
+    return week.first;
+}
+
+fun generatePickList(
+    list: ArrayList<RadioGroup>,
+    score: String,
+    week: String,
+    date: String
+): Pair<String, String> {
+    val pickList = ArrayList<String>()
+    val pickList2 = ArrayList<String>()
+    for (group in list) {
+        val homeTeamButton = (group[1] as RadioButton)
+        val awayTeamButton = (group[2] as RadioButton)
+        if (homeTeamButton.isChecked) {
+            val text = homeTeamButton.text.toString()
+            pickList.add(text)
+            pickList2.add(text)
+        } else if (awayTeamButton.isChecked) {
+            val text = awayTeamButton.text.toString()
+            pickList.add(text)
+            pickList2.add(text)
+        }
+
+    }
+    pickList.add(score)
+    pickList.add(week)
+    pickList.add(date)
+    val returnString = pickList.toString()
+    val returnFormattedString = pickList2.toString()
+
+    Timber.i(returnString)
+    return Pair(returnString, returnFormattedString)
+}
+
+fun formatForPickDatabase(context: Context, picks: String, picksFormatted: String): Pick {
     val saveString = picks.replace("[", "").replace("]", "")
 
     val splitString = saveString.split(",")

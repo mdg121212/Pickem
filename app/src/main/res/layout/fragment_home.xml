@@ -9,6 +9,7 @@
     tools:context=".ui.home.fragments.HomeFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_home_fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -97,6 +98,24 @@
             app:layout_constraintTop_toBottomOf="@+id/iv_home_field_graphic"
             tools:text="TEXT" />
 
+        <TextView
+            android:id="@+id/tv_gameOne_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameOne"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameOne" />
+
+        <TextView
+            android:id="@+id/tv_gameOne_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameOne"
+            app:layout_constraintStart_toStartOf="@id/rg_gameOne" />
+
         <RadioGroup
             android:id="@+id/rg_gameOne"
             android:layout_width="wrap_content"
@@ -123,7 +142,7 @@
                 android:layout_marginEnd="25dp"
                 android:textAlignment="center"
                 android:textStyle="bold"
-                android:visibility="gone"
+                android:visibility="visible"
                 tools:text="TEXT"
                 tools:visibility="visible" />
 
@@ -158,8 +177,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameTwo_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@+id/rg_gameTwo"
+            app:layout_constraintEnd_toEndOf="@+id/rg_gameTwo" />
+
+        <TextView
+            android:id="@+id/tv_gameTwo_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@+id/rg_gameTwo"
+            app:layout_constraintStart_toStartOf="@+id/rg_gameTwo" />
+
         <RadioGroup
             android:id="@+id/rg_gameTwo"
             android:layout_width="wrap_content"
@@ -176,8 +213,8 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_weight="2"
-                tools:src="@tools:sample/avatars"
-                android:contentDescription="@string/team_logo"/>
+                android:contentDescription="@string/team_logo"
+                tools:src="@tools:sample/avatars" />
 
             <RadioButton
                 android:id="@+id/radioButtonThree"
@@ -204,8 +241,8 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
-                tools:src="@tools:sample/avatars"
-                android:contentDescription="@string/team_logo"/>
+                android:contentDescription="@string/team_logo"
+                tools:src="@tools:sample/avatars" />
         </RadioGroup>
 
         <TextView
@@ -219,8 +256,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameThree_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameThree"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameThree" />
+
+        <TextView
+            android:id="@+id/tv_gameThree_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameThree"
+            app:layout_constraintStart_toStartOf="@id/rg_gameThree" />
+
         <RadioGroup
             android:id="@+id/rg_gameThree"
             android:layout_width="wrap_content"
@@ -237,8 +292,8 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_weight="2"
-                tools:src="@tools:sample/avatars"
-                android:contentDescription="@string/team_logo"/>
+                android:contentDescription="@string/team_logo"
+                tools:src="@tools:sample/avatars" />
 
             <RadioButton
                 android:id="@+id/radioButtonFive"
@@ -265,8 +320,8 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_weight="1"
-                tools:src="@tools:sample/avatars"
-                android:contentDescription="@string/team_logo"/>
+                android:contentDescription="@string/team_logo"
+                tools:src="@tools:sample/avatars" />
         </RadioGroup>
 
         <TextView
@@ -280,8 +335,25 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameFour_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameFour"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameFour" />
+
+        <TextView
+            android:id="@+id/tv_gameFour_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameFour"
+            app:layout_constraintStart_toStartOf="@id/rg_gameFour" />
 
         <RadioGroup
             android:id="@+id/rg_gameFour"
@@ -342,8 +414,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameFive_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameFive"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameFive" />
+
+        <TextView
+            android:id="@+id/tv_gameFive_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameFive"
+            app:layout_constraintStart_toStartOf="@id/rg_gameFive" />
+
         <RadioGroup
             android:id="@+id/rg_gameFive"
             android:layout_width="wrap_content"
@@ -403,8 +493,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameSix_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameSix"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameSix" />
+
+        <TextView
+            android:id="@+id/tv_gameSix_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameSix"
+            app:layout_constraintStart_toStartOf="@id/rg_gameSix" />
+
         <RadioGroup
             android:id="@+id/rg_gameSix"
             android:layout_width="wrap_content"
@@ -463,8 +571,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameSeven_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameSeven"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameSeven" />
+
+        <TextView
+            android:id="@+id/tv_gameSeven_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameSeven"
+            app:layout_constraintStart_toStartOf="@id/rg_gameSeven" />
+
         <RadioGroup
             android:id="@+id/rg_gameSeven"
             android:layout_width="wrap_content"
@@ -524,8 +650,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameEight_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameEight"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameEight" />
+
+        <TextView
+            android:id="@+id/tv_gameEight_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameEight"
+            app:layout_constraintStart_toStartOf="@id/rg_gameEight" />
+
         <RadioGroup
             android:id="@+id/rg_gameEight"
             android:layout_width="wrap_content"
@@ -585,8 +729,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameNine_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameNine"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameNine" />
+
+        <TextView
+            android:id="@+id/tv_gameNine_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameNine"
+            app:layout_constraintStart_toStartOf="@id/rg_gameNine" />
+
         <RadioGroup
             android:id="@+id/rg_gameNine"
             android:layout_width="wrap_content"
@@ -646,8 +808,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameTen_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameTen"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameTen" />
+
+        <TextView
+            android:id="@+id/tv_gameTen_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameTen"
+            app:layout_constraintStart_toStartOf="@id/rg_gameTen" />
+
         <RadioGroup
             android:id="@+id/rg_gameTen"
             android:layout_width="wrap_content"
@@ -708,8 +888,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameEleven_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameEleven"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameEleven" />
+
+        <TextView
+            android:id="@+id/tv_gameEleven_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameEleven"
+            app:layout_constraintStart_toStartOf="@id/rg_gameEleven" />
+
         <RadioGroup
             android:id="@+id/rg_gameEleven"
             android:layout_width="wrap_content"
@@ -768,8 +966,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameTwelve_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameTwelve"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameTwelve" />
+
+        <TextView
+            android:id="@+id/tv_gameTwelve_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameTwelve"
+            app:layout_constraintStart_toStartOf="@id/rg_gameTwelve" />
+
         <RadioGroup
             android:id="@+id/rg_gameTwelve"
             android:layout_width="wrap_content"
@@ -828,8 +1044,25 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameThirteen_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameThirteen"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameThirteen" />
+
+        <TextView
+            android:id="@+id/tv_gameThirteen_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameThirteen"
+            app:layout_constraintStart_toStartOf="@id/rg_gameThirteen" />
 
         <RadioGroup
             android:id="@+id/rg_gameThirteen"
@@ -889,8 +1122,26 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:textColor="@color/homeScreenTextViewColor"
-            tools:text = "TEXT"
-            />
+            tools:text="TEXT" />
+
+        <TextView
+            android:id="@+id/tv_gameFourteen_percentRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameFourteen"
+            app:layout_constraintEnd_toEndOf="@id/rg_gameFourteen" />
+
+        <TextView
+            android:id="@+id/tv_gameFourteen_leftPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:tag="@string/expert_percent_view_tag"
+            app:layout_constraintBottom_toTopOf="@id/rg_gameFourteen"
+            app:layout_constraintStart_toStartOf="@id/rg_gameFourteen" />
+
         <RadioGroup
             android:id="@+id/rg_gameFourteen"
             android:layout_width="wrap_content"

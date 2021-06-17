@@ -7,7 +7,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.mattg.pickem.R
 import com.mattg.pickem.db.Pick
 import com.mattg.pickem.db.WeekMatchUp
 import com.mattg.pickem.db.repos.ApiCallRepository
@@ -18,6 +17,7 @@ import com.mattg.pickem.models.iomodels.IOScheduleReponse
 import com.mattg.pickem.models.iomodels.IOScoresResponse
 import com.mattg.pickem.utils.Constants
 import com.mattg.pickem.utils.DatabaseConverters
+import com.mattg.pickem.utils.ViewUtils.Companion.getImageFromTeam
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -33,7 +33,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ApiCallRepository(application)
     private val roomRepository = RoomRepo(application)
 
-
+    //TODO replace this harcoded list with data fetched from backend
     private val weeksArray = arrayListOf(
             Week(1, Date(2020, 9, 10, 12, 0)),
             Week(2, Date(2020, 9, 17, 12, 0)),
@@ -95,6 +95,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _dateToCheckWinner = MutableLiveData<String>()
     val dateToCheckWinner: LiveData<String> = _dateToCheckWinner
 
+    private val _showExperts = MutableLiveData<Boolean>()
+    val showExperts: LiveData<Boolean> = _showExperts
+
+    fun setShouldShowExperts(shouldShow: Boolean) {
+        Timber.d(">>>>>>>>>>setting should show to value $shouldShow")
+        _showExperts.value = shouldShow
+    }
+
     fun setShowSpinner(input: Boolean) {
         _showSpinner.value = input
     }
@@ -118,10 +126,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _teamsAndImages.value = null
     }
 
-
+    /**
+     * Takes the week and year, checks if this information exists locally, and if it does gets matchups data
+     * from the local db, otherwise makes a rest api call
+     * @param year Int season year
+     * @param week Int season week
+     */
     private suspend fun getWeekData(year: Int, week: Int) {
-        when (checkDatabaseMatchups()) {
+        when (checkIfDatabaseNeedsUpdating()) {
             true -> {
+                Timber.d(">>>>>>>calling api for matchups with $year $week")
                 callApiForMatchups(year, week, false)
             }
             false -> {
@@ -149,37 +163,51 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Get the matchups to display, and set the games list value with filtered results.
+     * Then triggers method to ready that value for display
+     * @param year Int: Season year
+     * @param week Int: Week of the NFL Season
+     * @param wasFiltered Boolean: has this list been filtered already (from database or api)
+     */
     private fun callApiForMatchups(year: Int, week: Int, wasFiltered: Boolean) {
-        val listToReturn = ArrayList<IOScoresResponse.IOScoresResponseItem>()
         repository.getApiService().getScoresByWeek(year, week, Constants.key).enqueue(object :
             Callback<IOScoresResponse> {
             override fun onResponse(
                 call: Call<IOScoresResponse>,
                 response: Response<IOScoresResponse>
             ) {
-                val responseData = response.body()
-                Timber.i("$responseData")
-                if (responseData != null) {
-                    for (item in responseData) {
-                        if (item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE" && item.canceled != true) {
-
-                            listToReturn.add(item)
-                        }
-                    }
-                }
-                if (wasFiltered) {
-                    setWeek(week)
-                }
-                _listOfGamesByWeek.value = listToReturn
+                _listOfGamesByWeek.value = filterPicks(response, week, wasFiltered)
                 setUpPickSheet()
-
             }
 
             override fun onFailure(call: Call<IOScoresResponse>, t: Throwable) {
                 Timber.i("Api call failed")
                 setShowSpinner(false)
+                _apiCallErrorMessage.postValue("Api Call Failed for reason: ${t.localizedMessage}")
             }
         })
+    }
+
+    private fun filterPicks(
+        response: Response<IOScoresResponse>,
+        week: Int,
+        wasFiltered: Boolean
+    ): ArrayList<IOScoresResponse.IOScoresResponseItem> {
+        val listToReturn = ArrayList<IOScoresResponse.IOScoresResponseItem>()
+        val responseData = response.body()
+        Timber.i("$responseData")
+        if (responseData != null) {
+            for (item in responseData) {
+                if (item.week == week && item.awayTeam != "BYE" && item.homeTeam != "BYE" && item.canceled != true) {
+                    listToReturn.add(item)
+                }
+            }
+        }
+        if (wasFiltered) {
+            setWeek(week)
+        }
+        return listToReturn;
     }
 
 
@@ -244,35 +272,26 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val returnList = returnedString.let { it.first?.let { retrievedString -> DatabaseConverters.toOptionValuesList(retrievedString) } }
         val returnedDataWeek = returnedString.let { it.second?.let { retrievedWeek -> checkIfNeedToUpdate(retrievedWeek) } }
         if (returnedDataWeek == true) {
-            Timber.i("WEEKNEEDS UPDATATING, CALLING API")
+            Timber.i("WEEK NEEDS UPDATATING, CALLING API")
             getWeekData(_currentYear.value!!, _upcomingWeek.value!!)
-
-        } else {
-            Timber.i("WEEKNEEDS NO UPDATATING, USING DATABASE")
+        } else
+            Timber.i("WEEK NEEDS NO UPDATATING, USING DATABASE")
             Timber.i("MATCHUPSTRING======at right before adding to live data : $returnList")
             setGameCount(returnList?.size!!)
             _teamsAndImages.postValue(returnList)
             _dateToCheckWinner.value = returnList.last().dateTime
             setShowSpinner(false)
-        }
-
     }
 
     private fun checkIfNeedToUpdate(retrievedWeek: Int): Boolean {
         return retrievedWeek < _upcomingWeek.value!!
     }
 
-    private suspend fun checkDatabaseMatchups(): Boolean {
-        return checkIfDatabaseNeedsUpdating()
-    }
-
     private suspend fun checkIfDatabaseNeedsUpdating(): Boolean {
         val returnBoolean: Boolean
-        //   var returnList = ArrayList<WeekMatchUp>()
         val result = roomRepository.areDatabaseMatchupsEmpty()
         //true if the return is empty
-        returnBoolean = analyzeRoomData(result)
-        return returnBoolean
+        return analyzeRoomData(result)
 
     }
 
@@ -313,12 +332,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Inserts the matchups string and week, casts to a data class and then saves to the database
+     * asynchronously
+     * @param matchupsString
+     * @param week
+     */
     private fun saveMatchupsToDatabase(matchupsString: String, week: Int) {
         val currentTimestamp = System.currentTimeMillis().toString()
         val matchupToSave = WeekMatchUp(
-                currentTimestamp,
-                matchupsString,
-                week
+            currentTimestamp,
+            matchupsString,
+            week
         )
         viewModelScope.launch {
             roomRepository.saveMatchupsToDatabase(matchupToSave)
@@ -332,6 +357,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         _currentYear.value = year
     }
 
+    /**
+     * Takes the parameter date and compares it to the weeks of the current season, to determine which week is upcoming
+     * @param date
+     * @return Pair<String, String> of the current week, last week
+     */
     fun getWeekToPick(date: Date): Pair<String, String> {
         when {
             date.before(weeksArray[0].startDate) -> {
@@ -423,115 +453,16 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun getImageFromTeam(input: String): Int {
-        when (input) {
-            "GB" -> {
-                return R.drawable.packers
-            }
-            "SF" -> {
-                return R.drawable.niners
-            }
-            "ATL" -> {
-                return R.drawable.falcons
-            }
-            "BUF" -> {
-                return R.drawable.bills
-            }
-            "NE" -> {
-                return R.drawable.patriots
-            }
-            "KC" -> {
-                return R.drawable.cheifs
-            }
-            "TB" -> {
-                return R.drawable.buccaneers
-            }
-            "LV" -> {
-                return R.drawable.raiders
-            }
-            "DEN" -> {
-                return R.drawable.broncos
-            }
-            "SEA" -> {
-                return R.drawable.seahawks
-            }
-            "BAL" -> {
-                return R.drawable.ravens
-            }
-            "IND" -> {
-                return R.drawable.colts
-            }
-            "HOU" -> {
-                return R.drawable.texans
-            }
-            "JAX" -> {
-                return R.drawable.jaguars
-            }
-            "CAR" -> {
-                return R.drawable.panthers
-            }
-            "DET" -> {
-                return R.drawable.lions
-            }
-            "MIN" -> {
-                return R.drawable.vikings
-            }
-            "CHI" -> {
-                return R.drawable.bears
-            }
-            "TEN" -> {
-                return R.drawable.titans
-            }
-            "NYG" -> {
-                return R.drawable.giants
-            }
-            "WAS" -> {
-                return R.drawable.washington
-            }
-            "LAC" -> {
-                return R.drawable.chargers
-            }
-            "MIA" -> {
-                return R.drawable.dolphins
-            }
-            "ARI" -> {
-                return R.drawable.cardinals
-            }
-            "NO" -> {
-                return R.drawable.saints
-            }
-            "NYJ" -> {
-                return R.drawable.jets
-            }
-            "PIT" -> {
-                return R.drawable.steelers
-            }
-            "DAL" -> {
-                return R.drawable.cowboys
-            }
-            "PHI" -> {
-                return R.drawable.eagles
-            }
-            "CLE" -> {
-                return R.drawable.browns
-            }
-            "LAR" -> {
-                return R.drawable.rams
-            }
-            "CIN" -> {
-                return R.drawable.bengals
-            }
-
-            else -> return R.drawable.item_gradient
-
-        }
-    }
-
     private fun setWeek(input: Int): String {
         return "Week $input"
     }
 
-    private fun setUpcomingWeek(input: Int): String {
+    /**
+     * Sets a live data value, and a text value (formatted) with the input number
+     * @param input Int: value of the week being set
+     * @return String: the formatted string value
+     */
+    fun setUpcomingWeek(input: Int): String {
         _upcomingWeek.value = input
         val titleText = "Week $input"
         _text.value = titleText
@@ -541,4 +472,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private fun setGameCount(games: Int) {
         _gameCount.value = games
     }
+
+
 }

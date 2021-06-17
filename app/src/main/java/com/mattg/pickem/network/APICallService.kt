@@ -21,6 +21,11 @@ object APICallService {
     private var rssApi: RSSApi? = null
     private var parseApi: ParseApi? = null
 
+    /**
+     * Creates a retrofit instance to deal with the Parse backend
+     * will return a new instance if current is null.
+     * @return ParseApi: object ready to use
+     */
     private fun getParseApi(): ParseApi {
         if (parseApi == null) {
             val okHttpClient = OkHttpClient.Builder()
