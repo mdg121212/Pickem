@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "765709467065",
+    "firebase_url": "https://pick-em-32010.firebaseio.com",
+    "project_id": "pick-em-32010",
+    "storage_bucket": "pick-em-32010.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765709467065:android:ad9b65d560b1ec27968a68",
+        "android_client_info": {
+          "package_name": "com.mattg.pickem"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "765709467065-q722fdvvkaqu7a1ohdbamv2suqogv4f8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mattg.pickem",
+            "certificate_hash": "c0f5f9fadc87af8610260998ef987a2ac6b69fe9"
+          }
+        },
+        {
+          "client_id": "765709467065-o570ihd0hvu4bh44p5fku63315tfd2ps.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRxmStYQTy1wGCNTvt1jABNSeBFxFHMF4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "765709467065-o570ihd0hvu4bh44p5fku63315tfd2ps.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

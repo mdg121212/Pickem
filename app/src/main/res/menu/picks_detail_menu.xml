@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/mnu_sort_by_week"
+        android:title="Sort by week" />
+    <item
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="@string/settings"
+        android:id="@+id/picks_detail_settings" />
+    <item
+        android:id="@+id/mnu_picks_detail_logout"
+        android:title="@string/logout" />
+</menu>

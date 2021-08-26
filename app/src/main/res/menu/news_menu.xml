@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/mnu_news_refresh"
+        android:icon="@drawable/ic_baseline_refresh_24"
+        android:title="@string/refresh"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/mnu_espn"
+        android:title="@string/espn" />
+    <item
+        android:id="@+id/mnu_nfl_nation"
+        android:title="@string/espn_nfl_nation" />
+    <item
+        android:id="@+id/mnu_pro_football"
+        android:title="@string/pro_football_network" />
+    <item
+        android:id="@+id/mnu_nyt"
+        android:title="@string/new_york_times_nfl" />
+    <item
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="@string/settings"
+        android:id="@+id/news_settings" />
+    <item
+        android:id="@+id/mnu_news_logout"
+        android:title="@string/logout" />
+</menu>

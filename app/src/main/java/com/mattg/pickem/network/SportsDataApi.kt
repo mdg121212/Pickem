@@ -3,6 +3,7 @@ package com.mattg.pickem.network
 import com.mattg.pickem.models.iomodels.IOScheduleReponse
 import com.mattg.pickem.models.iomodels.IOScoresResponse
 import com.mattg.pickem.models.iomodels.IOWeekScoresResponse
+import com.mattg.pickem.models.iomodels.TeamGameStats
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -31,8 +32,19 @@ interface SportsDataApi {
     fun getWeekForCheckingScore(@Query("key") key: String): Call<String>
 
     @GET("ScoresByWeek/{season}/{week}?")
-    fun getScoresFromWeek(@Path("season") year: String,
-                          @Path("week") week: Int,
-                          @Query("key") key: String)
+    fun getScoresFromWeek(
+        @Path("season") year: String,
+        @Path("week") week: Int,
+        @Query("key") key: String
+    )
             : Call<IOWeekScoresResponse>
+
+    @GET("TeamGameStats/{season}/{week}?")
+    fun getAllTeamGameStatsByBeek(
+        @Path("season") year: String,
+        @Path("week") week: Int,
+        @Query("key") key: String
+    )
+            : Call<TeamGameStats>
+
 }

@@ -164,6 +164,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Retrieves the current information from the backend, mostly to avoid hardcoding and to allow testing
+     * by changing these to past dates/weeks (possibly add history/historical feature to compare previous outcomes)
+     */
+    private fun getWeekYearFromBackend() {
+        //  repository.nflApi.getTimeData();
+    }
+
+    /**
      * Get the matchups to display, and set the games list value with filtered results.
      * Then triggers method to ready that value for display
      * @param year Int: Season year
@@ -471,6 +479,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun setGameCount(games: Int) {
         _gameCount.value = games
+    }
+
+    /**
+     * Provide a week to return all game stats for all teams, and use this data for display
+     * and analysis of a given match up.
+     */
+    fun getAllTeamsStatsPreviousWeek() {
+
     }
 
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/mnu_submit_picks"
+        android:icon="@drawable/ic_baseline_add_24_white"
+        android:title="@string/submit_your_picks"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/mnu_view_all_picks"
+        android:icon="@drawable/ic_baseline_pageview_24"
+        android:title="@string/view_pool_picks"
+        app:showAsAction="ifRoom" />
+    <item
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="@string/settings"
+        android:id="@+id/pool_detail_settings" />
+    <item
+        android:id="@+id/mnu_pool_detail_logout"
+        android:title="@string/logout" />
+</menu>
